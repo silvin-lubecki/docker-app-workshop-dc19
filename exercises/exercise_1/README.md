@@ -4,6 +4,21 @@
 >
 > **Difficulty**: Easy
 
+## Table of Contents
+
+1. [Docker Compose Background](#docker-compose-background)
+2. [The Application](#the-application)
+3. [Finishing the Compose File](#finishing-the-compose-file)
+4. [Starting the Application Stack](#starting-the-application-stack)
+5. [Cleaning Up](#cleaning-up)
+
+## Exercise Objects
+
+By the end of this exercise, you will have:
+
+- Learned about Docker Compose
+- Explored the Voting App application stack
+
 During this exercise we will build a Docker Compose file that is ready to deploy as a Docker Application.
 
 ## Docker Compose Background
@@ -35,7 +50,7 @@ The compose file found in the `exercise_1` directory has all of the services nee
 
 ### Helpful Tips for Play-with-Docker
 
-- Working within the terminal can be tricky, especially for folks not familiar for CLI-based text editors. To help, use the "Editor" feature in PWD.
+- Working within the terminal can be tricky, especially for folks not familiar with CLI-based text editors. To help, use the "Editor" feature in PWD.
 - You can drag-and-drop files from your local machine on to the terminal to easily upload them.
 
 
@@ -43,28 +58,36 @@ The compose file found in the `exercise_1` directory has all of the services nee
 
 Both the `vote` and `results` services are webapps. However, there's currently no port mapping for the services. In order to access the apps, we need to expose the ports.
 
-For the `vote` service, we'll use the "[short syntax](https://docs.docker.com/compose/compose-file/#short-syntax-1)" for port mappings. The syntax is `host-port:container-port`. As an example, `5000:80` will map port 5000 from the host to port 80 in the container.
+1. The `vote` service exposes its application on port 80. For this service, use the "[short syntax](https://docs.docker.com/compose/compose-file/#short-syntax-1)" to map port 80 to port 5000 on the host. 
 
-```yml
-services:
-  vote:
-    ports:
-      - 5000:80
-```
+    <details>
+      <summary>Solution</summary>
 
-For the `results` service, let's use the "[long syntax](https://docs.docker.com/compose/compose-file/#long-syntax-1)" form. While longer, it's much easier to quickly see what's going on and helps those that can't remember the order of ports in the short syntax.
+    ```yml
+    services:
+      vote:
+        ports:
+          - 5000:80
+    ```
+    </details>
 
-```yml
-services:
-  results:
-    ports:
-      - target: 80
-        published: 5001
-        protocol: tcp
-        mode: host
-```
 
-This will expose our `results` service on port 5001.
+2. The `results` service also exposes its application on port 80. Since we can't use the same port, let's expose this service on port 5001. For practice, expose its port using the "[long syntax](https://docs.docker.com/compose/compose-file/#long-syntax-1)". While longer, it's much easier to quickly see what's going on and helps those that can't remember the order of ports in the short syntax.
+
+    <details>
+      <summary>Solution</summary>
+
+    ```yml
+    services:
+      results:
+        ports:
+          - target: 80
+            published: 5001
+            protocol: tcp
+            mode: host
+    ```
+    </details>
+
 
 
 
@@ -72,44 +95,57 @@ This will expose our `results` service on port 5001.
 
 Databases are pretty important and it's usually preferred to keep the data longer than a single container restart. As such, we need to store the data in a volume. 
 
-In this case, we don't care _where_ the data is stored, as long as it's there every time we start the container. This is a good candidate for using a named volume. For this service, we will use a "[short syntax](https://docs.docker.com/compose/compose-file/#short-syntax-3)" definition.
+In this case, we don't care _where_ the data is stored, as long as it's there every time we start the container. This is a good candidate for using a named volume. 
 
-```yaml
-services:
-  db:
+1. We first need to declare a new volume in the `volumes` section. Let's just name it `db-data` and let it use the default `local` driver.
+
+    <details>
+      <summary>Solution</summary>
+    ```yaml
     volumes:
-      - db-data:/var/lib/postgresql/data
-```
+      db-data:
+    ```
+    </details>
 
-In order for this to work, we also need to declare the volume in the `volumes` section. So, let's add that as well. This snippet will go at the bottom of the file.
+2. Add a volume mapping for our new volume (`db-data`) that mounts to the container's `/var/lib/postgresql/data` directory. Practice using the "[short syntax](https://docs.docker.com/compose/compose-file/#short-syntax-3)" format.
 
-```yaml
-volumes:
-  db-data:
-```
+    <details>
+      <summary>Solution</summary>
+    ```yaml
+    services:
+      db:
+        volumes:
+          - db-data:/var/lib/postgresql/data
+    ```
+    </details>
 
-This volume definition will create a volume using the default driver (which is `local`). Since we are using local, we do have a chance of data loss. If running this app in a clustered environment and a restart gets scheduled on another node, a new local volume will be created on the new node. Therefore, **we should use a network-enabled volume driver in a production environment**. For this workshop, we will just use the local driver.
+
+**NOTE:** Since we are using a local volume, we do have a chance of data loss. If running this app in a clustered environment and a container restart is scheduled on another node, a new local volume will be created on the new node. Therefore, **we should use a network-enabled volume driver in a production environment**. For this workshop, we will just use the local driver.
 
 
 ## Starting the Application Stack
 
-Now that we have our compose file setup and configured, let's start it up! Use the following command to start it up. Once you do so, you'll see it pull all of the images necessary to run the full stack.
+Now that we have our compose file setup and configured, let's start it up! 
 
-```bash
-$ docker-compose up -d
-Creating network "front-tier" with the default driver
-Creating network "back-tier" with the default driver
-Creating volume "root_db-data" with default driver
-Creating root_redis_1  ... done
-Creating root_worker_1 ... done
-Creating root_db_1     ... done
-Creating root_result_1 ... done
-Creating root_vote_1   ... done
-```
+1. Use the `docker-compose up -d` command to start up the application stack in the background (allowing us to still use the terminal).
 
-You'll see all of the networks, volume, and services get created. After a moment, you should see badges appear for the exposed ports. Click on the badge for 5000 to visit the vote app and 5001 for the results app.
+    ```bash
+    $ docker-compose up -d
+    Creating network "front-tier" with the default driver
+    Creating network "back-tier" with the default driver
+    Creating volume "root_db-data" with default driver
+    Creating root_redis_1  ... done
+    Creating root_worker_1 ... done
+    Creating root_db_1     ... done
+    Creating root_result_1 ... done
+    Creating root_vote_1   ... done
+    ```
 
-![Port Badges in Play-with-Docker](port-badges.png)
+    You'll see all of the networks, volume, and services get created. 
+    
+2. After a moment, you should see badges appear for the exposed ports. Click on the badge for 5000 to visit the vote app and 5001 for the results app.
+
+    ![Port Badges in Play-with-Docker](port-badges.png)
 
 ### Other Useful Commands
 
@@ -129,29 +165,29 @@ root_worker_1   /bin/sh -c dotnet src/Work ...   Up
 
 ## Cleaning Up
 
-Once you're done, go ahead and shut everything down.
+1. Once you're done, go ahead and shut everything down by running `docker-compose down`.
 
-```bash
-$ docker-compose down
-Stopping root_vote_1   ... done
-Stopping root_result_1 ... done
-Stopping root_redis_1  ... done
-Stopping root_db_1     ... done
-Stopping root_worker_1 ... done
-Removing root_vote_1   ... done
-Removing root_result_1 ... done
-Removing root_redis_1  ... done
-Removing root_db_1     ... done
-Removing root_worker_1 ... done
-Removing network front-tier
-Removing network back-tier
-```
+    ```bash
+    $ docker-compose down
+    Stopping root_vote_1   ... done
+    Stopping root_result_1 ... done
+    Stopping root_redis_1  ... done
+    Stopping root_db_1     ... done
+    Stopping root_worker_1 ... done
+    Removing root_vote_1   ... done
+    Removing root_result_1 ... done
+    Removing root_redis_1  ... done
+    Removing root_db_1     ... done
+    Removing root_worker_1 ... done
+    Removing network front-tier
+    Removing network back-tier
+    ```
 
-You'll see that all of the containers and networks are removed. However, volumes are NOT removed by default. If you wish to remove the volume, add the `-v` flag.
+2. You'll see that all of the containers and networks are removed. However, volumes are NOT removed by default. If you wish to remove the volume, add the `-v` flag.
 
-```bash
-$ docker-compose down -v
-Removing volume root_db-data
-```
+    ```bash
+    $ docker-compose down -v
+    Removing volume root_db-data
+    ```
 
 And now we're ready for the next exercise!
