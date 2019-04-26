@@ -1,7 +1,71 @@
-version: '3.7'
+version: "3.7"
+
 services:
-  hello:
-    image: hashicorp/http-echo:latest
-    command: ["-text", "Hello DockerCon", "-listen",":8080"]
-    ports:
-     - 8080:8080
+  vote:
+    image: mikesir87/examplevotingapp_vote
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+
+  redis:
+    image: redis:alpine
+    networks:
+      - frontend
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == manager]
+
+  db:
+    image: postgres:9.4
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  results:
+    image: mikesir87/examplevotingapp_result
+    networks:
+      - backend
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+networks:
+  frontend:
+    name: front-tier
+  backend:
+    name: back-tier
+
