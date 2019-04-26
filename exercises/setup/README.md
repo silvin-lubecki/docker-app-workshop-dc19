@@ -9,46 +9,53 @@
 1. [Introduction to Docker Contexts](#introduction-to-docker-contexts)
 1. [How to save your work](#how-to-save-your-work)
 
-> During this workshop you will learn: 
-> * how to create a Docker Hub account
-> * how to use Play With Docker
-> * how to install new Docker CLI Plugins
-> * how to use Docker Contexts
-> * how to save your workshop files
+## Exercise Objectives
+
+By the end of this exercise you will:
+
+- Have created a Docker Hub account (unless you already have one)
+- Learn how to use Play With Docker
+- Learn how to install new Docker CLI Plugins
+- Learn how to use Docker Contexts
+- Learn how to save your workshop files
 
 ## Create a Docker Hub account
 
-**1.** If you already have a Docker Hub account, go to **step 5**
+1. If you already have a Docker Hub account, go to **step 5**
 
-**2.** Go to https://hub.docker.com
+2. Go to https://hub.docker.com and click on the "Sign up for Docker Hub" button.
 
-<details>
-  <summary>Details</summary>
+    <details>
+      <summary>Details</summary>
 
-![hub login](dockerhub-login.png)
-</details>
-<br/>
+    ![Docker Hub login](dockerhub-login.png)
+    </details>
 
-**3.** Sign up with a `login`, `password` and email
+3. Complete the registration form by providing your Docker ID, password, and an email address.
 
-**4.** Check your mailbox and confirm your email
+    <details>
+      <summary>Details</summary>
 
-<details>
-  <summary>Details</summary>
+    ![Docker Hub registration form](docker-signup-form.png)
+    </details>
 
-![hub confirmation](confirmation.png)
-</details>
-<br/>
+4. Check your mailbox and confirm your email address.
 
-**5.** Sign in to Docker Hub
+    <details>
+      <summary>Details</summary>
 
-<details>
-  <summary>Details</summary>
+    ![hub confirmation](confirmation.png)
+    </details>
 
-https://hub.docker.com
+5. Sign in to Docker Hub to validate your credentials work.
 
-![hub sign in](sign-in.png)
-</details>
+    <details>
+      <summary>Details</summary>
+
+    https://hub.docker.com
+
+    ![hub sign in](sign-in.png)
+    </details>
 
 
 ## Set Up 'Play With Docker'
