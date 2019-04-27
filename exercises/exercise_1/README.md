@@ -12,7 +12,7 @@
 4. [Starting the Application Stack](#starting-the-application-stack)
 5. [Cleaning Up](#cleaning-up)
 
-## Exercise Objects
+## Exercise Objectives
 
 By the end of this exercise, you will have:
 
