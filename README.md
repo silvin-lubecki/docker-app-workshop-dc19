@@ -11,6 +11,7 @@ Welcome to the Docker Application workshop. We prepared for you 5 exercises to d
 * [Exercise 4](exercises/exercise_4/README.md): Configure your Application with Parameters
 * [Exercise 5](exercises/exercise_5/README.md): Disabling Services with `x-enabled`
 * [Exercise 6](exercises/exercise_6/README.md): Under the hood: CNAB
+* [Exercise 7](exercises/exercise_7/README.md): Advanced - Adding a Reverse Proxy (Traefik) to the Application
 
 **Feel free to ask any question during this workshop.**
 
