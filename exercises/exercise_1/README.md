@@ -23,9 +23,9 @@ During this exercise we will build a Docker Compose file that is ready to deploy
 
 ## Docker Compose Background
 
-Docker Compose is a tool designed to make it easy to define and share multi-container applications. While you can do everything in Docker Compose with Docker CLI commands, defining it in a YAML file makes it easy to share. Plus, the application stack is able to be version controlled.
+Docker Compose is a tool designed to make it easy to define and share multi-container applications. While you can do everything in Docker Compose with Docker CLI commands, defining it in a YAML file makes it easy to share and review. Plus, the application stack is able to be version controlled.
 
-For this exercise, we will start with an existing compose file. But, it has missing pieces in it, which we will fill in to learn about the various components of a compose file. We will then build on this file for the next exercises.
+For this exercise, we will start with an existing compose file. But, it has missing pieces in it, which we will fill in to learn about the various components of a compose file. We will then build on this file for the next exercises. Note that, when creating your own file in the future, only compose version 3 schema is supported in Docker App.
 
 Many development teams have a `docker-compose.yml` file that is intended for development (mounts in source code, uses a dev-enabled container) and a `docker-stack.yml` file for production deploys (uses built images, no code mounting). Since Docker App requires a production deploy, it'll typically reflect the setup used in a `docker-stack.yml` file. For simplicity in this exercise (since we are using Docker Compose), we are using a `docker-compose.yml`.
 
@@ -51,6 +51,10 @@ The compose file found in the `exercise_1` directory has all of the services nee
 ### Helpful Tips for Play-with-Docker
 
 - Working within the terminal can be tricky, especially for folks not familiar with CLI-based text editors. To help, use the "Editor" feature in PWD.
+
+    ![PWD Editor Button](editor-button.png)
+    ![PWD Editor](editor.png)
+    
 - You can drag-and-drop files from your local machine on to the terminal to easily upload them.
 
 
