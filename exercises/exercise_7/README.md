@@ -30,7 +30,7 @@ We will be updating our application stack to allow all requests to go through po
 
 This will allow the default requests to go to the `vote` service, but then any request to `/results` will be handled by the results service.
 
-**Note:** In many environments, you have want to use host-based routing for different applications. But, we only have one domain available for us to use on PWD, so have to resort to path-based routing.
+**Note:** In many environments, you may want to use host-based routing for different applications. But, we only have one domain available for us to use on PWD, so have to resort to path-based routing.
 
 
 ## Defining the proxy service
