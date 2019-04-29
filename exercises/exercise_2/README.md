@@ -1,219 +1,283 @@
-# Exercise - Discover Docker Application Package
+# Exercise - Creating the Docker Application
 
 > **Time**: Approximately 20 minutes
+>
+> **Difficulty**: Easy
 
-During this exercise we will introduce `Docker Application Package` and its dedicated tool `docker-app`.
-`Application Package` is a construction above `Compose file` to improve the application lifecycle and workflow, from development to test to production.
+## Exercise Objectives
 
-An application package is a set of 3 documents, plus custom files we name `attachments`:
-* a `metadata.yml` file describing the application metadata (name, version, description, ...)
-* a `docker-compose.yml` file describing the application structure
-* a `parameters.yml` file with key/value parameters (we will see this part in the next exercise)
+By the end of this exercise, you will have:
 
-First things first, let's initialize our first application package, using the previous `words` exercise.
+- Created a Docker Application package
+- Learned about the application package components
+- Learned about merging and splitting the components
+- Learned how to inspect and validate the application
 
-## Initialize the Application Package
 
-```sh
-$ docker-app init --help
 
-Usage:  docker-app init <app-name> [-c <compose-file>] [-d <description>] [-m name:email ...] [flags]
+## Docker Application Overview
 
-Start building a Docker application. Will automatically detect a docker-compose.yml file in the current directory.
+Application packages are a construction above compose files to improve application lifecycle and workflow, from development to test to production. An application package is a set of 3 documents:
 
-Options:
-  -c, --compose-file string      Initial Compose file (optional)
-  -d, --description string       Initial description (optional)
-  -m, --maintainer stringArray   Maintainer (name:email) (optional)
-  -s, --single-file              Create a single-file application
-```
+1. A `metadata.yml` file describing the application metadata (name, version, description, ...)
+2. A `docker-compose.yml` file describing the application structure (what we have right now)
+3. A `parameters.yml` file with key/value parameters (we will use this in the next exercise)
 
-* Use **docker-app init** command to create the application package from the compose file
-```sh
-workshop $ cd words
-words $ docker-app init myapp -d "My word application" -m dapworkshop:dapworkshop@docker.com
-words $ tree .
-.
-|-- docker-compose.yml
-`-- myapp.dockerapp
-    |-- docker-compose.yml
-    |-- metadata.yml
-    `-- parameters.yml
+You can also include any of your own custom files, including config files. These additional files are called `attachments`.
 
-1 directory, 4 files
-```
+## Initialize the Application
 
-This command creates a new directory with the name of your app + `.dockerapp` suffix. It copies the initial compose file and generates `metadata.yml` with the given information, plus an `parameters.yml` file.
+1. Let's look at the `docker app init` command and see it's options.
 
-An application package can also be a single file, using the multi-yaml document feature. It's very handy for sharing an app!
+    ```bash
+    $ docker app init --help
 
-* **Merge** the application package to the one-file version
+    Usage:  docker app init APP_NAME [--compose-file COMPOSE_FILE] [--description DESCRIPTION] [--maintainer NAME:EMAIL ...] [OPTIONS]
 
-```sh
-words $ docker-app merge myapp -o myapp-merged.dockerapp
-words $ cat myapp-merged.dockerapp
-```
-```yaml
-# Version of the application
-version: 0.1.0
-# Name of the application
-name: myapp
-# A short description of the application
-description: My word application
-# Namespace to use when pushing to a registry. This is typically your Hub username.
-#namespace: myhubusername
-# List of application maintainers with name and email for each
-maintainers:
-  - name: dapworkshop
-    email: dapworkshop@docker.com
+    Start building a Docker Application package. If there is a docker-compose.yml file in the current directory it will be copied and used.
 
----
-version: "3.7"
-services:
-    web:
-     image: dockerdemos/lab-web
-     ports:
-      - "33000:80"
+    Examples:
+    $ docker app init myapp --description "a useful description"
 
-    words:
-     image: dockerdemos/lab-words
-     deploy:
-       replicas: 5
-       endpoint_mode: dnsrr
+    Options:
+          --compose-file string      Compose file to use as application base (optional)
+          --description string       Human readable description of your application (optional)
+          --maintainer stringArray   Name and email address of person responsible for the application
+                                    (name:email) (optional)
+          --single-file              Create a single-file Docker Application definition
+    ```
 
-    db:
-     image: dockerdemos/lab-db
+2. Let's now create our Docker app! We will use the `docker app init` command and specify the description and maintainer. Feel free to change these values. Be sure to run this in the same directory as the `docker-compose.yml` file we were working on in the last exercise. Otherwise you can specify a path to your compose file using `--compose-file path/to/my/docker-compose.yml`.
 
----
-{}
-```
+    ```bash
+    $ docker app init voting-app --description "Voting App" --maintainer "dapworkshop:dapworkshop@docker.com"
+    Created "voting-app.dockerapp"
+    ```
 
-**NOTE:** If you don't specify the `-o`, the merge will transform your application to a one-file version in place, removing the 3 files. The same behavior applies to the `split` command.
+3. If you run `tree`, you'll see a new directory. The name is your app name with a `.dockerapp` suffix. Let's look inside the directory.
 
-* **Split** the one-file application package to a directory
-```sh
-words $ docker-app split myapp-merged.dockerapp -o myapp-split
-words $ tree.
-.
-|-- docker-compose.yml
-|-- myapp-merged.dockerapp
-|-- myapp-split
-|   |-- docker-compose.yml
-|   |-- metadata.yml
-|   `-- parameters.yml
-`-- myapp.dockerapp
-    |-- docker-compose.yml
-    |-- metadata.yml
-    `-- parameters.yml
+    ```bash
+    $ tree
+    .
+    ├── docker-compose.yml
+    └── voting-app.dockerapp
+        ├── docker-compose.yml
+        ├── metadata.yml
+        └── parameters.yml
 
-2 directories, 8 files
-```
+    1 directory, 4 files
+    ```
 
-* Let's **clean** our workspace and remove the split and merged versions, keep only `myapp.dockerapp` directory
-```sh
-words $ rm -rf myapp-split myapp-merged.dockerapp
-```
+4. The compose file is a copy of the file you were working with earlier. If you open the `metadata.yml` file, you'll see the config we specified during initialization.
 
-## Inspect your application
+    ```bash
+    $ cat voting-app.dockerapp/metadata.yml
+    # Version of the application
+    version: 0.1.0
+    # Name of the application
+    name: voting-app
+    # A short description of the application
+    description: Voting App
+    # List of application maintainers with name and email for each
+    maintainers:
+      - name: dapworkshop
+        email: dapworkshop@docker.com
+    ```
 
-`docker-app` comes with another very handy command: `inspect`. With it you can display all important informations without having to read the `YAML` yourself.
 
-* **Inspect** your application package
-```sh
-words $ docker-app inspect myapp
-myapp 0.1.0
 
-Maintained by: dapworkshop <dapworkshop@docker.com>
+## Merging our Docker Application
 
-My word application
+While the default app initialization is to create a new folder and create three separate files, you can actually merge everything into a single file!
 
-Services (3) Replicas Ports Image
------------- -------- ----- -----
-db           1              dockerdemos/lab-db
-web          1        33000 dockerdemos/lab-web
-words        3              dockerdemos/lab-words
-```
+1. Use the `docker app merge` command to merge the app into a single file. We use the `-o` flag to specify the new file to create.
 
-`inspect` command will
-* pretty print the metadata
-* list the services
-* but also volumes
-* networks
-* secrets 
-* attachments
-* parameters
+    ```bash
+    $ docker app merge voting-app -o voting-app-merged.dockerapp
+    ```
 
-**NOTE**: All `docker-app` commands have multiple ways to take an application as an argument:
-```sh
-# You can omit it if current directory is a `*.dockerapp`
-myapp.dockerapp $ docker-app inspect
-# or if there is only one `*.dockerapp` (file or directory) in the current directory
-words $ docker-app inspect
-# you can reference it by its name only `path/to/myapp`
-workshop $ docker-app inspect words/myapp
-# or by its full path `path/to/myapp.dockerapp`
-workshop $ docker-app inspect words/myapp.dockerapp
-```
+2. If you look at the file, you'll see the contents of each of the original files merged together. For brevity, the full contents aren't included below.
 
-* **Try** to inspect the application from different working directories.
+    <details>
+      <summary>Full output of merged file</summary>
 
-## Validate your application
+    ```bash
+    $ cat voting-app-merged.dockerapp
+    # Version of the application
+    version: 0.1.0
+    # Name of the application
+    name: voting-app
+    # A short description of the application
+    description:
+    # List of application maintainers with name and email for each
+    maintainers:
+    - name: root
+        email:
 
-The `validate` command checks everything is ok with your application:
-* Compose file is valid
-* Required Metadata are filled (name, version) and have the good type
-* Default parameters
+    ---
+    version: "3.7"
 
-* **Validate** your application
-```sh
-words $ docker-app validate myapp
-words $ echo $?
-0
-```
+    services:
+    vote:
+        image: mikesir87/examplevotingapp_vote
+        networks:
+        - frontend
+        ports:
+        - 5000:80
+        depends_on:
+        - redis
+        deploy:
+        replicas: 2
+        update_config:
+            parallelism: 2
+        restart_policy:
+            condition: on-failure
 
-Let's modify a bit this app:
-* **Comment** the version field in `myapp.dockerapp/metadata.yml` using `#`
-* **Add** some garbage characters to the name: `name: myapp$%%^`
-* **Validate** the application
-```sh
-words $ docker-app validate myapp
-Error: failed to validate metadata:
-- name: Does not match format 'hostname'
-- version: version is required
-words $ echo $?
-1
-```
-* **Fix** `myapp.dockerapp/metadata.yml`
+    redis:
+        image: redis:alpine
+        networks:
+        - frontend
+        deploy:
+        replicas: 1
+        update_config:
+            parallelism: 2
+            delay: 10s
+        restart_policy:
+            condition: on-failure
 
-* **Comment** the `services:` line in `myapp.dockerapp/docker-compose.yml`
-* **Validate** the application
-```sh
-words $ docker-app validate myapp
-Error: failed to load composefiles: failed to parse Compose file version: "3.7"
-#services:
-    web:
-     image: dockerdemos/lab-web
-     ports:
-      - "33000:80"
-
-    words:
-     image: dockerdemos/lab-words
-     deploy:
-       replicas: 3
-       endpoint_mode: dnsrr
+    worker:
+        image: dockersamples/examplevotingapp_worker
+        networks:
+        - frontend
+        - backend
+        deploy:
+        replicas: 1
+        restart_policy:
+            condition: on-failure
+            delay: 10s
+            max_attempts: 3
+            window: 120s
+        placement:
+            constraints: [node.role == manager]
 
     db:
-     image: dockerdemos/lab-db
+        image: postgres:9.4
+        networks:
+        - backend
+        volumes:
+        - db-data:/var/lib/postgresql/data
+        deploy:
+        placement:
+            constraints: [node.role == manager]
 
-: yaml: line 2: did not find expected key
+    results:
+        image: mikesir87/examplevotingapp_result
+        ports:
+        - 5001:80
+        networks:
+        - backend
+        depends_on:
+        - db
+        deploy:
+        replicas: 1
+        update_config:
+            parallelism: 2
+            delay: 10s
+        restart_policy:
+            condition: on-failure
 
-words $ echo $?
-1
-```
-* **Fix** `myapp.dockerapp/docker-compose.yml`
+    networks:
+    frontend:
+        name: front-tier
+    backend:
+        name: back-tier
 
-**Summary**
-* `docker-app` let's you define metadata and parameters on top of a compose file
-* `inspect` displays all important informations in a compact way
-* `validate` checks everything is ok in the application. You can use it as a CI step.
-* `split`/`merge` transforms your application to a multiple-files/one-file. The one-file version is easy to share.
+    volumes:
+    db-data:
+    ---
+    {}
+    ```
+
+## Splitting the Docker Application
+
+Once merged, the application can be split back into separate files using the `docker app split` command.
+
+1. Run the `docker app split` command to split the file back out into separate files
+
+    ```bash
+    $ docker app split voting-app-merged.dockerapp -o voting-app-split.dockerapp
+    ```
+
+2. Look in the `voting-app-split.dockerapp` directory and you'll see the files split apart.
+
+    ```bash
+    $ ls voting-app-merged.dockerapp
+    docker-compose.yml  metadata.yml        parameters.yml
+    ```
+
+3. At this point, we don't need the split and merged versions anymore. Let's remove them to reduce confusion going forward.
+
+    ```bash
+    $ rm -r voting-app-merged.dockerapp voting-app-split.dockerapp
+    ```
+
+
+## Inspecting our Docker Application
+
+We can use the `docker app inspect` command to get a quick output of all of the services, number of replicas, ports, and the image being used. This could allow an ops admin to quickly check all the elements before deploying to production, without having to manually parse the compose file.
+
+1. Run the `docker app inspect` command to inspect our application. You shouldn't need to provide the app name, as there is only one in the directory.
+
+    ```bash
+    $ docker app inspect
+    voting-app 0.1.0
+
+    Maintained by: dapworkshop <dapworkshop@docker.com>
+
+    Voting App
+
+    Services (6) Replicas Ports   Image
+    ------------ -------- -----   -----
+    vote         2        5000    mikesir87/examplevotingapp_vote
+    redis        1                redis:alpine
+    worker       1                dockersamples/examplevotingapp_worker
+    db           1                postgres:9.4
+    results      1        5001    mikesir87/examplevotingapp_result
+
+    Networks (3)
+    ------------
+    frontend
+    backend
+    proxy
+
+    Volume (1)
+    ----------
+    db-data
+    ```
+
+
+
+## Validating our Application
+
+Before we're ready to ship our application, we should validate it to make sure everything is set. Specifically, validation does the following:
+
+- Ensures our compose file is valid (correct syntax, etc.)
+- Ensures required metadata is provided (name, version) and is the correct format
+- Ensures all parameters (which we'll talk about next) have default values
+
+1. Run the `docker app validate` command to make sure our application is valid.
+
+    ```bash
+    $ docker app validate
+    Validated "/root/voting-app.dockerapp"
+    ```
+
+2. Let's make a change to invalidate the application. In the `voting-app.dockerapp/metadata.yml` file, comment out the `version` field using a `#`. Then, revalidate.
+
+    ```bash
+    $ docker app validate
+    failed to validate metadata:
+    - version: version is required
+    ```
+
+    We have an error! Go ahead and fix it and revalidate.
