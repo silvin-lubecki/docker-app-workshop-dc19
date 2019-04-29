@@ -45,7 +45,7 @@ For this workshop, we will use a modified version of the [Voting App](https://gi
 
 ## Finishing the Compose File
 
-The compose file found in the `exercise_1` directory has all of the services needed for the application, but has a few missing pieces to help us learn a little bit more about Docker Compose. We will fill in a few pieces now, but will continue to evolve our compose file as we advance through the workshop.
+The [compose file found in the `exercise_1` directory](./docker-compose.yml) has all of the services needed for the application, but has a few missing pieces to help us learn a little bit more about Docker Compose. We will fill in a few pieces now, but will continue to evolve our compose file as we advance through the workshop.
 
 
 ### Helpful Tips for Play-with-Docker
@@ -105,6 +105,7 @@ In this case, we don't care _where_ the data is stored, as long as it's there ev
 
     <details>
       <summary>Solution</summary>
+
     ```yaml
     volumes:
       db-data:
@@ -115,6 +116,7 @@ In this case, we don't care _where_ the data is stored, as long as it's there ev
 
     <details>
       <summary>Solution</summary>
+
     ```yaml
     services:
       db:
