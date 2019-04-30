@@ -8,6 +8,9 @@ Welcome to the Docker Application workshop. We prepared for you 5 exercises to d
 * [Exercise 1](exercises/exercise_1/README.md): Write and Deploy a Compose file
 * [Exercise 2](exercises/exercise_2/README.md): Creating the Docker Application
 * [Exercise 3](exercises/exercise_3/README.md): Running and Sharing our Docker Application
+
+5-minute Break
+
 * [Exercise 4](exercises/exercise_4/README.md): Configure your Application with Parameters
 * [Exercise 5](exercises/exercise_5/README.md): Disabling Services with `x-enabled`
 * [Exercise 6](exercises/exercise_6/README.md): Under the hood: CNAB
