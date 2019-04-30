@@ -254,3 +254,14 @@ Now that we've learned how to deploy a locally-sourced application, let's push o
     </details>
 
     And that's it! You can go onto either of the Swarm nodes and use the port badges to open the app (may take a few seconds for it pull the images and start the containers).
+
+5. Once you've validated that it works, go ahead and uninstall the application so we have a clean slate for our next exercise.
+
+    <details>
+      <summary>Output</summary>
+    
+    ```console
+    $ docker app uninstall voting-app --target-context swarm
+    Application "swarm-viz" uninstalled on context "swarm"
+    ```
+    </details>
