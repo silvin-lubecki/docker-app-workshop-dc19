@@ -117,8 +117,42 @@ For this workshop, we will simulate a basic workflow with two environments:
     </details>
 
     It just added 2 nodes, one **manager1** and one **worker1**.
+    
+2. On the **manager1** node, run `docker node ls` and validate you have two nodes. If you don't, run `docker swarm join-token worker`, copy the token, and run the copied `docker swarm join` command on the **worker1** node.
 
-2. Now let's add a local **development node**: click on **+ ADD NEW INSTANCE**
+    <details>
+      <summary>Details</summary>
+    
+    On **manager1** node:
+    ```console
+    $ docker node ls
+    ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION
+    du64yyv64u3gpypkqwb8cli39 *   manager1            Ready               Active              Leader              18.09.4
+    [manager1] (local) root@192.168.0.43 ~
+    $ docker swarm join-token worker
+    To add a worker to this swarm, run the following command:
+
+        docker swarm join --token SWMTKN-1-4v4o696r1t6zwcimz8pazuxnwwuh2vjol7zejt33d2erp5wp4g-bbp8kcw4uk7mt9snusp6xh2io 192.168.0.43:2377
+    ```
+    
+    Copy the `docker swarm join` command and run it on the **worker1** node. 
+    
+    ```console
+    docker swarm join --token SWMTKN-1-4v4o696r1t6zwcimz8pazuxnwwuh2vjol7zejt33d2erp5wp4g-bbp8kcw4uk7mt9snusp6xh2io 192.168.0.43:237
+    This node joined a swarm as a worker.
+    ```
+    
+    Then, on the **manager1** node, `docker node ls` should show two nodes.
+    
+    ```console
+    $ docker node ls
+    ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION
+    du64yyv64u3gpypkqwb8cli39 *   manager1            Ready               Active              Leader              18.09.4
+    z6l2z7terttlxp33kym0rg4tn     worker1             Ready               Active                                  18.09.4
+    ```
+    </details>
+
+3. Now let's add a local **development node**: click on **+ ADD NEW INSTANCE**
 
     <details>
       <summary>Details</summary>
@@ -126,9 +160,9 @@ For this workshop, we will simulate a basic workflow with two environments:
     ![pwd create instance](nodes.png)
     </details>
 
-3. We will be doing most of our work from this new instance (**node1**). Select it.
+4. We will be doing most of our work from this new instance (**node1**). Select it.
 
-4. Login to Docker Hub using the `docker login` command and your credentials.
+5. Login to Docker Hub using the `docker login` command and your credentials.
 
     ```console
     $ docker login
