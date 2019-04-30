@@ -12,7 +12,7 @@
 By the end of this exercise you will:
 
 - Learn how to create a CNAB from scratch
-- Learn how to use Docker App as a CNAB clien
+- Learn how to use Docker App as a CNAB client
 
 ## Create a CNAB Bundle from scratch
 
