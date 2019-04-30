@@ -25,6 +25,8 @@ Application packages are a construction above compose files to improve applicati
 
 You can also include any of your own custom files, including config files. These additional files are called `attachments`.
 
+![Application](application.png)
+
 ## Initialize the Application
 
 1. Let's look at the `docker app init` command and see it's options.
