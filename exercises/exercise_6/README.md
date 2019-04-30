@@ -1,6 +1,7 @@
 # Exercise 6 - CNAB Under the Hood
 
 > **Time**: Approximately 15 minutes
+>
 > **Difficulty**: Medium
 
 ## Table of Contents
