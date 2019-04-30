@@ -12,6 +12,7 @@ Welcome to the Docker Application workshop. We prepared for you 5 exercises to d
 * [Exercise 5](exercises/exercise_5/README.md): Disabling Services with `x-enabled`
 * [Exercise 6](exercises/exercise_6/README.md): Under the hood: CNAB
 * [Exercise 7](exercises/exercise_7/README.md): Advanced - Adding a Reverse Proxy (Traefik) to the Application
+* [Exercise 8](exercises/exercise_8/README.md): Advanced - Create a CNAB bundle from scratch
 
 **Feel free to ask any question during this workshop.**
 
