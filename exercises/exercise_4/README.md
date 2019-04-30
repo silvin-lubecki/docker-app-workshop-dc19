@@ -9,6 +9,7 @@
 1. [Docker App Parameters](#docker-app-parameters)
 1. [Using a Parameter to Change Voting Options](#using-a-parameter-to-change-voting-options)
 1. [Upgrading a Deployed Application](#upgrading-a-deployed-application)
+1. [More practice: Prepare for production](#more-practice-prepare-for-production)
 
 ## Exercise Objectives
 
@@ -167,25 +168,184 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
 
 With the app deployed, let's change the settings by "upgrading" the application bundle. To do so, we can use the `docker app upgrade` command. While we will change settings in the upgrade here, you can use this command to actually deploy an updated version of the app.
 
-1. Let's pretend that Moby had gotten more votes, but we really want Molly to win (since she's cuter anyways)! Let's swap the values, making `options.A=Molly` and `options.B=Moby`.
+Let's pretend that Moby had gotten more votes, but we really want Molly to win (since she's cuter anyways)! Let's swap the values, making `options.A=Molly` and `options.B=Moby`.
 
-    <details>
-      <summary>Solution/Output</summary>
-    
-    ```console
-    $ docker app upgrade voting-app -s options.A=Molly -s options.B=Moby --target-context=swarm
-    Updating service voting-app_results (id: tpugiytt4eq9p88lvb8900pmq)
-    Updating service voting-app_vote (id: d49hxltgvg5faie0kc735oy42)
-    Updating service voting-app_redis (id: x9hpof20yumf2gv3mbbd9g1i5)
-    Updating service voting-app_db (id: nwssvpk4r8gklcfnvd47w7tzx)
-    Updating service voting-app_worker (id: qoyl03yaxtdyefb5oh6u9m698)
-    Application "voting-app" upgraded on context "swarm"
-    ```
-    </details>
+<details>
+  <summary>Solution/Output</summary>
 
-    After a moment, you should be able to open either service and see the options have been swapped. Now, Molly is guaranteed to win the vote! :tada:
+```console
+$ docker app upgrade voting-app -s options.A=Molly -s options.B=Moby --target-context=swarm
+Updating service voting-app_results (id: tpugiytt4eq9p88lvb8900pmq)
+Updating service voting-app_vote (id: d49hxltgvg5faie0kc735oy42)
+Updating service voting-app_redis (id: x9hpof20yumf2gv3mbbd9g1i5)
+Updating service voting-app_db (id: nwssvpk4r8gklcfnvd47w7tzx)
+Updating service voting-app_worker (id: qoyl03yaxtdyefb5oh6u9m698)
+Application "voting-app" upgraded on context "swarm"
+```
+</details>
+<br/>
+
+After a moment, you should be able to open either service and see the options have been swapped. Now, Molly is guaranteed to win the vote! :tada:
 
 
-## More Practice
+## More Practice: Prepare for production
 
-While we added parameters to change the options, we can set parameters for almost anything in the compose file. As practice, turn the exposed ports into parameters (`vote.exposedPort` and `results.exposedPort`) and allow them to be overridden. Then, actually override them and validate it worked!
+While we added parameters to change the options, we can set parameters for almost anything in the compose file.
+
+As a practice:
+1. Turn the exposed ports into parameters (`vote.exposedPort` and `results.exposedPort`) and allow them to be overridden.
+1. Add a parameter to all the `replicas` sections, don't forget the default value
+1. Add a `resources` section under `deploy`:
+
+```yaml
+services:
+  service:
+    deploy:
+      resources:
+        limits:
+          cpus: '${service.cpu_limit}'
+          memory: ${service.memory_limit}
+```
+
+<details>
+  <summary>docker-compose.yml</summary>
+
+```yaml
+version: "3.7"
+
+services:
+  vote:
+    image: mikesir87/examplevotingapp_vote
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    ports:
+      - ${vote.exposedPort}:80
+    deploy:
+      replicas: ${vote.replicas}
+      resources:
+        limits:
+          cpus: '${vote.cpu_limit}'
+          memory: ${vote.memory_limit}
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+    environment:
+      OPTION_A: ${options.A}
+      OPTION_B: ${options.B}
+
+  redis:
+    image: redis:alpine
+    networks:
+      - frontend
+    deploy:
+      replicas: ${redis.replicas}
+      resources:
+        limits:
+          cpus: '${redis.cpu_limit}'
+          memory: ${redis.memory_limit}
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    deploy:
+      replicas: ${worker.replicas}
+      resources:
+        limits:
+          cpus: '${worker.cpu_limit}'
+          memory: ${worker.memory_limit}
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == manager]
+
+  db:
+    image: postgres:9.4
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  results:
+    image: mikesir87/examplevotingapp_result
+    networks:
+      - backend
+    depends_on:
+      - db
+    ports:
+      - ${results.exposedPort}:80
+    deploy:
+      replicas: ${results.replicas}
+      resources:
+        limits:
+          cpus: '${results.cpu_limit}'
+          memory: ${results.memory_limit}
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    environment:
+      OPTION_A: ${options.A}
+      OPTION_B: ${options.B}
+
+networks:
+  frontend:
+    name: front-tier
+  backend:
+    name: back-tier
+```
+</details>
+
+<details>
+  <summary>parameters.yml</summary>
+
+```yaml
+options:
+  A: Cats
+  B: Dogs
+vote:
+  replicas: 2
+  cpu_limit: 1
+  memory_limit: 512M
+  exposedPort: 5000
+redis:
+  replicas: 1
+  cpu_limit: 1
+  memory_limit: 512M
+worker:
+  replicas: 1
+  cpu_limit: 1
+  memory_limit: 512M
+results:
+  replicas: 1
+  cpu_limit: 1
+  memory_limit: 512M
+  exposedPort: 5001
+```
+</details>
+<br/>
+
+Now we will create a new parameters file for **production**, with different parameters:
+- more replicas
+- more realistic constraints on cpu and memory limits
+
+:warning: Be sure you uninstall the previous installation before installing this one for production.
+
+Then we are ready for installation:
+```sh
+$ docker app install --parameters-file=production.yml --target-context=swarm
+```
