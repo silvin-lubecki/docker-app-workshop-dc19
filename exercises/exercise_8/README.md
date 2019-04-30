@@ -1,6 +1,7 @@
 # Exercise 8 - Advanced - Create a CNAB bundle from scratch
 
 > **Time**: Approximately 15 minutes
+>
 > **Difficulty**: Medium
 
 ## Table of Contents
