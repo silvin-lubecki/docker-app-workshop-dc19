@@ -1,6 +1,6 @@
 # Docker Application Workshop for DockerCon 2019
 
-Welcome to the Docker Application workshop. We prepared for you 5 exercises to discover and master `docker app` and the Application Package Definition.
+Welcome to the Docker Application workshop. We prepared for you some exercises to discover and master `docker app` and the Application Package Definition.
 
 ## Exercises
 
@@ -9,7 +9,7 @@ Welcome to the Docker Application workshop. We prepared for you 5 exercises to d
 * [Exercise 2](exercises/exercise_2/README.md): Creating the Docker Application
 * [Exercise 3](exercises/exercise_3/README.md): Running and Sharing our Docker Application
 
-5-minute Break
+5-minutes Break
 
 * [Exercise 4](exercises/exercise_4/README.md): Configure your Application with Parameters
 * [Exercise 5](exercises/exercise_5/README.md): Disabling Services with `x-enabled`
