@@ -1,266 +1,256 @@
-# Exercise - Configure your application with parameters
+# Exercise - Running and Sharing our Docker Application
 
-> **Time**: Approximately 20 minutes
+> **Time**: Approximately 10 minutes
+>
+> **Difficulty**: Easy
 
-## Introducing parameters
+## Table of Contents
 
-During this exercise we will learn how add parameters and use them for deployment.
+1. [Deploying the Docker App](#deploying-the-docker-app)
+1. [Viewing Installed Applications](#viewing-installed-applications)
+1. [Uninstalling the Docker App](#uninstalling-the-docker-app)
 
-`docker-app` makes the already existing `Compose` variable substitutions system easy to use.
-Just replace any part of the compose file with a variable using this form: `${path.to.my-variable}`
-`docker-app` will seek into the `parameters.yml` file, which is a simple key/value YAML file, to find the default value.
 
-Here is the corresponding `parameters.yml` file:
-```yaml
-path:
-    to:
-        my-variable: myvalue
-        other-variable: othervalue
-```
+## Exercise Objectives
 
-**NOTE:** All the application parameters will be displayed using the `inspect` command.
+By the end of this exercise, you will have:
 
-## Add parameters to an existing `docker-compose.yml` file
+- Deployed the Docker App using the locally-sourced app bundle
+- Learned how to see existing app installations
+- Removed an app installation
+- Tagged and pushed the Docker App to Docker Hub
+- Uninstalled a Docker App
 
-We will re-use the first compose file we wrote, with the `hello` service.
 
-* **Go back** to `/workshop` and create a single-file `hello` application using the previous `docker-compose.yml`
-```sh
-words $ cd /workshop
-/workshop $ docker-app init hello --compose-file docker-compose.yml --description "Hello DockerCon application" --single-file
-```
-It produces a `hello.dockerapp` file which should be like the following:
-```yaml
-# This section contains your application metadata.
-# Version of the application
-version: 0.1.0
-# Name of the application
-name: hello
-# A short description of the application
-description: Hello DockerCon application
-# Namespace to use when pushing to a registry. This is typically your Hub username.
-#namespace: myhubusername
-# List of application maintainers with name and email for each
-#maintainers:
-#  - name: John Doe
-#    email: john@doe.com
+## Deploying the Docker App
 
----
-# This section contains the Compose file that describes your application services.
-version: '3.7'
-services:
-  hello:
-    image: hashicorp/http-echo:latest
-    command: ["-text", "Hello DockerCon", "-listen",":8080"]
-    ports:
-     - 8080:8080
+There are two different ways Docker App can locate an application bundle
 
----
-# This section contains the default values for your application parameters.
-{}
-```
+- **Locally** - Docker App will use a merged or split application bundle definition found on your local filesystem
+- **Remote** - Docker App will pull the application bundle from Docker Hub (or another registry)
 
-* **Edit** the `hello.dockerapp` file and replace the "Hello DockerCon" text with a variable `${hello.text}` and add the variable as a parameter in the `parameters` section
-* **Use `validate`** while you edit your application to check everything is ok
-* **`inspect`** your application, now the parameters section is displayed
+For our first deployment, we will simply use the locally available app definitions.
 
-```sh
-$ docker-app inspect hello
-hello 0.1.0
+1. Let's first look at the `docker app install` options. Run `docker app install --help` to see all options.
 
-Hello DockerCon application
+    <details>
+      <summary>Full console output</summary>
 
-Service (1) Replicas Ports Image
------------ -------- ----- -----
-hello       1        8080  hashicorp/http-echo:latest
+    ```console
+    $ docker app install --help
 
-Parameter (1) Value
-------------- -----
-hello.text    Hello DockerCon
-```
+    Usage:  docker app install [APP_NAME] [--name INSTALLATION_NAME] [--target-context TARGET_CONTEXT] [OPTIONS]
 
-* Replace all the `8080` ports with a `${hello.port}` variable, and add it too to the `parameters` section
-* `validate` then `inspect` the application, it displays the `hello.port` parameter
+    Install an application.
+    By default, the application definition in the current directory will be
+    installed. The APP_NAME can also be:
+    - a path to a Docker Application definition (.dockerapp) or a CNAB bundle.json
+    - a registry Application Package reference
 
-**NOTE:** metadata are available as read-only variables under the `app` prefix. You can use them in your compose file:
-- `${app.name}`
-- `${app.version}`
-- `${app.description}`
+    Aliases:
+      install, deploy
 
-**NOTE:** the `parameters` section **MUST** define all the variables with a default value. If any parameter is missing, an error will occur on `validate` or `inspect` commands.
+    Examples:
+    $ docker app install myapp.dockerapp --name myinstallation --target-context=mycontext
+    $ docker app install myrepo/myapp:mytag --name myinstallation --target-context=mycontext
+    $ docker app install bundle.json --name myinstallation --credential-set=mycredentials.yml
 
-* **Comment** one of the two parameters, then `inspect` or `validate` the application. Don't forget to uncomment the parameter.
-```sh
-$ docker-app validate hello
-Error: failed to load Compose file: invalid interpolation format for services.hello.command.[]: "required variable hello.text is missing a value". You may need to escape any $ with another $.
-```
+    Options:
+          --credential-set stringArray    Use a YAML file containing a credential set or a credential set
+                                          present in the credential store
+          --insecure-registries strings   Use HTTP instead of HTTPS when pulling from/pushing to those registries
+          --kubernetes-namespace string   Kubernetes namespace to install into (default "default")
+          --name string                   Installation name (defaults to application name)
+          --orchestrator string           Orchestrator to install on (swarm, kubernetes)
+          --parameters-file stringArray   Override parameters file
+          --pull                          Pull the bundle
+      -s, --set stringArray               Override parameter value
+          --target-context string         Context on which the application is installed (default: <current-context>)
+          --with-registry-auth            Sends registry auth
+    ```
+    </details>
 
-## Render an application to a compose file
+    You'll see that we need to specify the name for our application and can set the `target-context`. Remember when we talked about Docker contexts? This will be where we use that. This allows us to run the commands in the dev instance, but have the deploy actually _happen_ on our Swarm cluster. Cool, huh?
 
-The `render` command will produce a compose file, substituting all the variables with the default values.
+2. Let's deploy the application bundle using the `docker app install` command. Specify the name of your app as `voting-app`
 
-* **`render`** the hello application
-```sh
-$ docker-app render hello
-```
-```yaml
-version: "3.7"
-services:
-  hello:
-    command:
-    - -text
-    - Hello DockerCon
-    - -listen
-    - :8080
-    image: hashicorp/http-echo:latest
-    ports:
-    - mode: ingress
-      target: 8080
-      published: 8080
-      protocol: tcp
-```
-* **Modify** the `hello.text` parameter in the `parameters` section and re-render
-* **Replace** the `${hello.text}` variable by `${app.description}` and re-render, then revert it
-* **Save** your rendered compose file using the `--output` flag
-```sh
-$ docker-app render hello --output hello.yml
-```
+    <details>
+      <summary>Solution/Full Output</summary>
 
-## Override the parameters
+      ```console
+      $ docker app install voting-app --target-context swarm
+      Creating network front-tier
+      Creating network back-tier
+      Creating service voting-app_vote
+      Creating service voting-app_redis
+      Creating service voting-app_db
+      Creating service voting-app_worker
+      Creating service voting-app_result
+      Application "voting-app" installed on context "swarm"
+      ```
+    </details>
 
-You can also override all the variables using the command line, or create another parameters file, with other values, targeting another environment.
+    :tada: The application stack is now deployed! Hooray!
 
-* **Override** the port using the `--set` flag with the `render` command
-```sh
-$ docker-app render hello --set hello.port=8181
-```
-```yaml
-version: "3.7"
-services:
-  hello:
-    command:
-    - -text
-    - Hello DockerCon
-    - -listen
-    - :8181
-    image: hashicorp/http-echo:latest
-    ports:
-    - mode: ingress
-      target: 8181
-      published: 8181
-      protocol: tcp
-```
 
-* **Edit** a new `prod-parameters.yml` file and add different values in it for `hello.text` and `hello.port` variables
-* **`render`** the application using this new settings file and the flag `--parameters-files`
-```sh
-$ cat prod-parameters.yml
-hello:
-    text: Hello Workshop
-    port: 80 
-$ docker-app render hello --parameters-files prod-parameters.yml 
-version: "3.7"
-services:
-  hello:
-    command:
-    - -text
-    - Hello Workshop
-    - -listen
-    - :80
-    image: hashicorp/http-echo:latest
-    ports:
-    - mode: ingress
-      target: 80
-      published: 80
-      protocol: tcp
-```
-**NOTE:** Parameters can be overridden using a mix of files or command line parameters. The parameters files doesn't need to define all the variables, a subset is enough. The precedence is the following:
-- command line parameters, last one has precedence on the others
-- files
-- default values in the parameters section.
+## Viewing Installed Applications
 
-* **Play** with `render` command and mix `--set` and `--parameters-files`
-```sh
-$ docker-app render hello -s hello.text="Hello Moby" -f prod-parameters.yml
-```
+Another handy tool is the `docker app ls` command, which allows us to see all currently installed applications.
 
-**NOTE:** these flags work the same way with `inspect`, `validate` or `install` commands.
+1. In your dev instance, run the `docker app ls` command. 
 
-* **Try** the same mix of parameters with `inspect`
-```sh
-$ docker-app inspect hello -f prod-parameters.yml
-hello 0.1.0
+    <details>
+      <summary>Full output</summary>
 
-Hello DockerCon application
+      ```console
+      $ docker app ls
+      INSTALLATION APPLICATION LAST ACTION RESULT CREATED MODIFIED REFERENCE
+      ```
+    </details>
 
-Service (1) Replicas Ports Image
------------ -------- ----- -----
-hello       1        80    hashicorp/http-echo:latest
+    Huh... nothing showed up. Why?
 
-Parameters (2) Value
--------------- -----
-hello.port     80
-hello.text     Hello Workshop
-```
+2. If we look at help for `docker app ls`, we'll see an option for `--target-context` again. When we first ran the `ls` command, it asked Docker for the app installations on our current machine, which has none. Go ahead and specify the `--target-context` and see if you get a better result. As a note, you can also set the `DOCKER_TARGET_CONTEXT` env variable and Docker App will use that in all commands.
 
-## Deploy the rendered compose file
+    <details>
+      <summary>Full output</summary>
+      
+    ```console
+    $ docker app ls --target-context swarm
+    INSTALLATION APPLICATION        LAST ACTION RESULT  CREATED   MODIFIED  REFERENCE
+    voting-app   voting-app (0.1.0) install     success 2 minutes 2 minutes
+    ```
+    </details>
 
-The rendered compose file can be directly injected to `docker-compose up` or `docker stack deploy` commands to deploy your application.
 
-* **Deploy** using `docker stack deploy`, the `-` references the standard input
-```sh
-$ docker-app render hello | docker stack deploy my-hello-app -c -
-Creating network my-hello-app_default
-Creating service my-hello-app_hello
-```
-* **Open** a browser at the `8080` port, it displays `Hello DockerCon`
-* **Re-deploy** changing the text
-```sh
-$ docker-app render hello -s hello.text="Hello Moby" | docker stack deploy my-hello-app -c -
-```
-* **Refresh** your browser and check the message
-* **Deploy** another application using the production parameters, it should open it on port `80`
-```sh  
-$ docker-app render hello -f prod-parameters.yml | docker stack deploy my-prod-app -c -
-```
-* **Remove** the two stacks using `docker stack rm`
+## Uninstalling the Docker App
 
-**NOTE:** With the parameters, you can now easily scale your application with `docker stack`.
+Let's practice uninstalling our deployed application.
 
-**Bonus Exercise:** Add parameterized `deploy.replicas` to the `hello` service and use it to scale up and down with the `render` command and `--set hello.replicas=X`
+1. Again from our dev instance, let's look at the full options for `docker app uninstall`.
 
-## Summary
+    <details>
+      <summary>Full output</summary>
+      
+    ```console
+    $ docker app uninstall --help
+    Usage:  docker app uninstall INSTALLATION_NAME [--target-context TARGET_CONTEXT] [OPTIONS]
 
-- With parameters you can use the same compose file and target multiple environments (dev/test/staging/prod/...) 
-- Render let's you check what will be the exact compose-file deployed
-- You can pipe the result of a render to your current workflow (`docker-compose`, `docker stack deploy`) and still use some of the benefits of docker-app
+    Uninstall an application
 
-Here is a generic application package template:
+    Examples:
+    $ docker app uninstall myinstallation --target-context=mycontext
 
-```yaml
-version: 0.1.0
-name: base
-description: A generic application template which takes an image as a parameter
-maintainers:
-  - name: garethr
-    email: garethr@docker.com
+    Options:
+          --credential-set stringArray   Use a YAML file containing a credential set or a credential set
+                                        present in the credential store
+          --force                        Force removal of installation
+          --target-context string        Context on which the application is installed (default: <current-context>)
+          --with-registry-auth           Sends registry auth
+    ```
+    </details>
 
----
-version: '3.7'
-services:
-  app:
-    image: ${image}
-    ports:
-     - ${port}:${port}
-    deploy:
-      replicas: ${replicas}
-      resources:
-        limits:
-          memory: ${memory}
+    We'll see that we need to specify the `INSTALLATION_NAME` and the `target-context`.
 
----
-image: 
-port: 8080
-replicas: 1
-memory: 128MB
-```
+2. Use the `docker app uninstall` command to remove the application.
+
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app uninstall voting-app --target-context swarm
+    Removing service voting-app_db
+    Removing service voting-app_redis
+    Removing service voting-app_result
+    Removing service voting-app_vote
+    Removing service voting-app_worker
+    Removing network back-tier
+    Removing network front-tier
+    Application "voting-app" uninstalled on context "swarm"
+    ```
+    </details>
+
+    :tada: It's gone now!
+
+3. To verify, you can run `docker app ls --target-context swarm` and validate that it's gone.
+
+    <details>
+      <summary>Full output</summary>
+    
+    ```console
+    $ docker app ls --target-context swarm
+    INSTALLATION APPLICATION LAST ACTION RESULT CREATED MODIFIED REFERENCE
+    ```
+    </details>
+
+
+## Pushing our Docker App
+
+Now that we've learned how to deploy a locally-sourced application, let's push our app to Docker Hub and deploy from there!
+
+1. Let's first take a look at the various options and flags on the `docker app push` command.
+
+    <details>
+      <summary>Full output</summary>
+    
+    ```console
+    $ docker app push --help
+
+    Usage:  docker app push [APP_NAME] --tag TARGET_REFERENCE [OPTIONS]
+
+    Push an application package to a registry
+
+    Examples:
+    $ docker app push myapp --tag myrepo/myapp:mytag
+
+    Options:
+          --insecure-registries strings   Use HTTP instead of HTTPS when pulling from/pushing to those registries
+          --platform strings              For multi-arch service images, only push the specified platforms
+      -t, --tag string                    Target registry reference (default: <name>:<version> from metadata)
+    ```
+    </details>
+
+2. When pushing, we will tag the application to include your Docker Hub account (`<your-hub-username>/voting-app.dockerapp`) and specify the tag as the current version (which defaulted to `0.1.0`). While not required, we do encourage you to keep the `.dockerapp` suffix on the image name to help make it more obvious that it is a repo containing a Docker App bundle.
+
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app push --tag mikesir87/voting-app.dockerapp:0.1.0
+    docker.io/mikesir87/voting-app.dockerapp:0.1.0-invoc
+    mikesir87/examplevotingapp_vote
+    sha256:a0d4d29d...: Skip (already present)
+    redis:alpine
+    sha256:ef67270b...: Skip (already present)
+    postgres:9.4
+    sha256:094e3a9e...: Skip (already present)
+    dockersamples/examplevotingapp_worker
+    sha256:55753a7b...: Skip (already present)
+    mikesir87/examplevotingapp_result
+    sha256:69198c25...: Skip (already present)
+    WARN[0003] reference for unknown type: application/vnd.cnab.config.v1+json
+    Successfully pushed bundle to docker.io/mikesir87/voting-app.dockerapp:0.1.0. Digest is sha256:ca706ede7e387173cf28b20e65336299873c072deb422c35a0fd57379b46932e.
+    ```
+    </details>
+
+    The output may look slightly different, as we had already previously pushed the app before capturing the output to display above. In addition, you'll see a different sha256, which can be used for addressing apps too. However, you should see a "Successfully pushed bundle" message at the end.
+
+3. Now, let's deploy our remotely-pushed application bundle to the cluster. All we have to do is specify the remote application as the application name and Docker App will fetch the image and then use the bundled name as the _actual_ name of the installed app (which can be overridden by using the `--name` option). Don't forget to specify the `target-context` too!
+
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app install mikesir87/voting-app.dockerapp:0.1.0 --target-context swarm
+    Creating network back-tier
+    Creating network front-tier
+    Creating service voting-app_db
+    Creating service voting-app_worker
+    Creating service voting-app_result
+    Creating service voting-app_vote
+    Creating service voting-app_redis
+    Application "voting-app" installed on context "swarm"
+    ```
+    </details>
+
+    And that's it! You can go onto either of the Swarm nodes and use the port badges to open the app (may take a few seconds for it pull the images and start the containers).
