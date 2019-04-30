@@ -150,7 +150,6 @@ Let's check the generated `bundle.json`:
 <details>
     <summary>Content</summary>
 
-**TODO** real json from voting-app
 ```json
 {
 	"name": "voting-app",
@@ -268,6 +267,20 @@ Let's check the generated `bundle.json`:
 			"destination": {
 				"env": "DOCKER_SHARE_REGISTRY_CREDS"
 			}
+		},
+		"option.A": {
+			"type": "string",
+			"defaultValue": "Cats",
+			"destination": {
+				"env": "docker_param1"
+			}
+		},
+		"option.B": {
+			"type": "string",
+			"defaultValue": "Dogs",
+			"destination": {
+				"env": "docker_param2"
+			}
 		}
 	},
 	"credentials": {
@@ -292,31 +305,22 @@ Docker App translated the Application Package to the CNAB format:
 
 After each installation, the state is stored locally (result, filled parameters...) so you won't have to specify them each time you interact with the installation. Have a look to your local store:
 
-**TODO** Get one at this step of the workshop
 ```sh
 $ tree ~/.docker/app
-/Users/silvin/.docker/app
+/root/.docker/app
 ├── bundles
 │   └── docker.io
-│       ├── library
-│       │   └── myapp
-│       │       └── _tags
-│       │           └── mytag.json
-│       └── slubecki
-│           └── example
+│       └── dapworkshop
+│           └── voting-app.dockerapp
 │               └── _tags
-│                   ├── v1.0.0.json
-│                   └── v2.0.0.json
+│                   └── v0.0.1.json
 ├── credentials
-└── installations
-    ├── 37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f
-    │   ├── cnab-with-status.json
-    │   ├── cnab-without-status.json
-    │   └── toto.json
     └── 7ab9b39a15b5b065f62b7d99d0e69e8f90ad69308a6ae873a8bbe70255646867
-        └── toto.json
+└── installations
+    └── 7ab9b39a15b5b065f62b7d99d0e69e8f90ad69308a6ae873a8bbe70255646867
+        └── voting-app.json
 
-14 directories, 7 files
+9 directories, 2 files
 ``` 
 
 You can see three stores:
