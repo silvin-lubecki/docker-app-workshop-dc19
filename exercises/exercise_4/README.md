@@ -286,7 +286,10 @@ services:
     depends_on:
       - db
     ports:
-      - ${results.exposedPort}:80
+      - target: 80
+        ${results.exposedPort}: 5001
+        protocol: tcp
+        mode: host
     deploy:
       replicas: ${results.replicas}
       resources:
