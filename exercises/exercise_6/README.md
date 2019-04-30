@@ -269,19 +269,103 @@ Let's check the generated `bundle.json`:
 				"env": "DOCKER_SHARE_REGISTRY_CREDS"
 			}
 		},
-		"option.A": {
-			"type": "string",
-			"defaultValue": "Cats",
-			"destination": {
-				"env": "docker_param1"
-			}
+		"options.A": {
+				"type": "string",
+				"defaultValue": "Cats",
+				"destination": {
+						"env": "docker_param1"
+				}
 		},
-		"option.B": {
-			"type": "string",
-			"defaultValue": "Dogs",
-			"destination": {
-				"env": "docker_param2"
-			}
+		"options.B": {
+				"type": "string",
+				"defaultValue": "Dogs",
+				"destination": {
+						"env": "docker_param2"
+				}
+		},
+		"redis.cpu_limit": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param3"
+				}
+		},
+		"redis.memory_limit": {
+				"type": "string",
+				"defaultValue": "512M",
+				"destination": {
+						"env": "docker_param4"
+				}
+		},
+		"redis.replicas": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param5"
+				}
+		},
+		"results.cpu_limit": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param6"
+				}
+		},
+		"results.memory_limit": {
+				"type": "string",
+				"defaultValue": "512M",
+				"destination": {
+						"env": "docker_param7"
+				}
+		},
+		"results.replicas": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param8"
+				}
+		},
+		"vote.cpu_limit": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param9"
+				}
+		},
+		"vote.memory_limit": {
+				"type": "string",
+				"defaultValue": "512M",
+				"destination": {
+						"env": "docker_param10"
+				}
+		},
+		"vote.replicas": {
+				"type": "string",
+				"defaultValue": "2",
+				"destination": {
+						"env": "docker_param11"
+				}
+		},
+		"worker.cpu_limit": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param12"
+				}
+		},
+		"worker.memory_limit": {
+				"type": "string",
+				"defaultValue": "512M",
+				"destination": {
+						"env": "docker_param13"
+				}
+		},
+		"worker.replicas": {
+				"type": "string",
+				"defaultValue": "1",
+				"destination": {
+						"env": "docker_param14"
+				}
 		}
 	},
 	"credentials": {
