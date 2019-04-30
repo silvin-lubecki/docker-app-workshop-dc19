@@ -1,6 +1,7 @@
 # Set up your environment
 
 > **Time**: Approximately 10 minutes
+>
 > **Difficulty**: Easy
 
 ## Table of Contents
@@ -91,14 +92,6 @@ This workshop will be using [Play With Docker](https://labs.play-with-docker.com
     </details>
 
 4. A new session is opened, which will be closed in **4 hours**. You can add multiple new instances and delete them. Each one has it's own engine and own prompt. You can also ssh directly to it if you feel more comfortable with your own terminal.
-
-    :important: Click on the configuration wheel and select **franela/dind:rc** image. This image includes the latest beta release of Docker, which we will be using in this workshop.
-
-    <details>
-      <summary>Details</summary>
-
-    ![select-image](select-image.png)
-    </details>
 
 
 ### Creating our Instances
@@ -237,7 +230,14 @@ Commands:
 Docker will always come with a **default** context:
 ```console
 $ docker context ls
-NAME                DESCRIPTION                               DOCKER ENDPOINT               KUBERNETES ENDPOINT   ORCHESTRATOR
+NAME                DESCRIPTION                               DOCKER ENDPOINT               KUBERNETES ENDPOINT   O
+
+
+
+
+
+
+HESTRATOR
 default *           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock                         swarm
 ```
 **Note:** The little star (**\***) indicates which context is currently in use.
