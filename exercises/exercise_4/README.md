@@ -287,7 +287,7 @@ services:
       - db
     ports:
       - target: 80
-        ${results.exposedPort}: 5001
+        published: ${results.exposedPort}
         protocol: tcp
         mode: host
     deploy:
