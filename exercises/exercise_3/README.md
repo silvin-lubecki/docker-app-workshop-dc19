@@ -262,6 +262,6 @@ Now that we've learned how to deploy a locally-sourced application, let's push o
     
     ```console
     $ docker app uninstall voting-app --target-context swarm
-    Application "swarm-viz" uninstalled on context "swarm"
+    Application "voting-app" uninstalled on context "swarm"
     ```
     </details>
