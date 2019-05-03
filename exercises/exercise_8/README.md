@@ -127,7 +127,7 @@ Docker App is a standard CNAB runtime. It can execute the following actions on a
 
 * **install** the application:
 ```sh
-$ docker app install cnab/bundle.json --name my-simple-app
+$ docker app install bundle.json --name my-simple-app
 Install action
 Bundle simple version 1.0.0
 Action install complete for my-simple-app

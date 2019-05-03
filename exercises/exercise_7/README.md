@@ -81,18 +81,18 @@ With the Traefik service added, we just need to add labels to the `vote` and `re
 
 1. Add the `proxy` network (don't remove the existing networks) and the following `labels` to the `vote` service.
 
-    ```yaml
-    services:
-    vote:
-        networks:
-        - proxy
-        deploy:
-        labels:
-            traefik.backend: vote
-            traefik.frontend.rule: PathPrefix:/
-            traefik.port: 80
-            traefik.docker.network: proxy
-    ```
+```yaml
+services:
+  vote:
+    networks:
+    - proxy
+    deploy:
+      labels:
+        traefik.backend: vote
+        traefik.frontend.rule: PathPrefix:/
+        traefik.port: 80
+        traefik.docker.network: proxy
+```
 
 2. Add the `proxy` network (don't remove the existing networks) and the following labels to the `results` service.
 
