@@ -53,7 +53,12 @@ The first thing we need to do is add the proxy service. We will use [Traefik](ht
     services:
       proxy:
         image: traefik
-        command: --docker --docker.swarmMode --api
+        command:
+          - '--providers.docker=true'
+          - '--api.insecure=true'
+          - '--entrypoints.web.address=:80'
+          - '--accesslog=true'
+          - '--providers.docker.swarmMode=true'
         ports:
           - 80:80
           - 8080:8080
@@ -88,10 +93,11 @@ services:
     - proxy
     deploy:
       labels:
-        traefik.backend: vote
-        traefik.frontend.rule: PathPrefix:/
-        traefik.port: 80
-        traefik.docker.network: proxy
+        - 'traefik.http.routers.vote.rule=PathPrefix(`/`)'
+        - "traefik.http.routers.vote.service=vote"
+        - "traefik.docker.network=proxy"
+        - "traefik.enable=true"
+        - "traefik.http.services.vote.loadbalancer.server.port=80"
 ```
 
 2. Add the `proxy` network (don't remove the existing networks) and the following labels to the `results` service.
@@ -103,10 +109,13 @@ services:
       - proxy
     deploy:
       labels:
-        traefik.backend: results
-        traefik.frontend.rule: PathPrefixStrip:/results
-        traefik.port: 80
-        traefik.docker.network: proxy
+        - 'traefik.http.routers.results.rule=PathPrefix(`/results`)'
+        - "traefik.http.middlewares.results-prefix.stripprefix.prefixes=/results"
+        - "traefik.http.routers.results.middlewares=results-prefix@docker"
+        - "traefik.http.routers.results.service=results"
+        - "traefik.docker.network=proxy"
+        - "traefik.enable=true"
+        - "traefik.http.services.results.loadbalancer.server.port=80"
 ```
 
 3. Remove the `port` mappings from both the `vote` and `results` services, as we will now be accessing them through the proxy now!
