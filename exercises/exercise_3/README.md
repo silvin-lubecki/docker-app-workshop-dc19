@@ -15,70 +15,62 @@
 
 By the end of this exercise, you will have:
 
-- Deployed the Docker App using the locally-sourced app bundle
+- Deployed the Docker App using the built app image
 - Learned how to see existing app installations
 - Removed an app installation
-- Tagged and pushed the Docker App to Docker Hub
-- Uninstalled a Docker App
+- Managed your local Application images
+- Pushed the Docker App image to Docker Hub
 
 
-## Deploying the Docker App
+## Run the Docker App
 
-There are two different ways Docker App can locate an application bundle
+There are two different ways Docker App can locate an application:
 
-- **Locally** - Docker App will use a merged or split application bundle definition found on your local filesystem
-- **Remote** - Docker App will pull the application bundle from Docker Hub (or another registry)
+- **Locally** - Docker App will use a built application 
+- **Remote** - Docker App will pull the application image from Docker Hub (or another registry)
 
-For our first deployment, we will simply use the locally available app definitions.
+For our first deployment, we will simply use the locally available app images.
 
-1. Let's first look at the `docker app install` options. Run `docker app install --help` to see all options.
+1. Let's first look at the `docker app run` options. Run `docker app run --help` to see all options.
 
     <details>
       <summary>Full console output</summary>
 
     ```console
-    $ docker app install --help
+    $ docker app run --help
 
-    Usage:  docker app install [APP_NAME] [--name INSTALLATION_NAME] [--target-context TARGET_CONTEXT] [OPTIONS]
+    Usage:  docker app run [OPTIONS] [APP_IMAGE]
 
-    Install an application.
-    By default, the application definition in the current directory will be
-    installed. The APP_NAME can also be:
-    - a path to a Docker Application definition (.dockerapp) or a CNAB bundle.json
-    - a registry Application Package reference
+    Run an application based on a docker app image.
 
     Aliases:
-      install, deploy
+      run, deploy
 
     Examples:
-    $ docker app install myapp.dockerapp --name myinstallation --target-context=mycontext
-    $ docker app install myrepo/myapp:mytag --name myinstallation --target-context=mycontext
-    $ docker app install bundle.json --name myinstallation --credential-set=mycredentials.yml
+    $ docker app run --name myinstallation --target-context=mycontext myrepo/myapp:mytag
 
     Options:
-          --credential-set stringArray    Use a YAML file containing a credential set or a credential set
-                                          present in the credential store
-          --insecure-registries strings   Use HTTP instead of HTTPS when pulling from/pushing to those registries
-          --kubernetes-namespace string   Kubernetes namespace to install into (default "default")
-          --name string                   Installation name (defaults to application name)
+          --credential stringArray        Add a single credential, additive ontop of any --credential-set used
+          --credential-set stringArray    Use a YAML file containing a credential set or a credential set present in the credential store
+          --name string                   Assign a name to the installation
+          --namespace string              Kubernetes namespace to install into (default "default")
           --orchestrator string           Orchestrator to install on (swarm, kubernetes)
           --parameters-file stringArray   Override parameters file
-          --pull                          Pull the bundle
       -s, --set stringArray               Override parameter value
           --target-context string         Context on which the application is installed (default: <current-context>)
           --with-registry-auth            Sends registry auth
     ```
     </details>
 
-    You'll see that we need to specify the name for our application and can set the `target-context`. Remember when we talked about Docker contexts? This will be where we use that. This allows us to run the commands in the dev instance, but have the deploy actually _happen_ on our Swarm cluster. Cool, huh?
+    You can specify the name for our application (otherwise a name will be generated) and can set the `target-context`. Remember when we talked about Docker contexts? This will be where we use that. This allows us to run the commands in the dev instance, but have the deploy actually _happen_ on our Swarm cluster. Cool, huh?
 
-2. Let's deploy the application bundle using the `docker app install` command. Specify the name of your app as `voting-app`
+2. Let's run the application using the `docker app run` command. Specify the name of your app as `voting-app`
 
     <details>
       <summary>Solution/Full Output</summary>
 
       ```console
-      $ docker app install voting-app --target-context swarm
+      $ docker app run myuser/voting-app:v0.1 --name voting-app  --target-context swarm
       Creating network front-tier
       Creating network back-tier
       Creating service voting-app_vote
@@ -93,9 +85,9 @@ For our first deployment, we will simply use the locally available app definitio
     :tada: The application stack is now deployed! Hooray!
 
 
-## Viewing Installed Applications
+## Viewing running Applications
 
-Another handy tool is the `docker app ls` command, which allows us to see all currently installed applications.
+Another handy tool is the `docker app ls` command, which allows us to see all currently running applications.
 
 1. In your dev instance, run the `docker app ls` command. 
 
@@ -123,23 +115,23 @@ Another handy tool is the `docker app ls` command, which allows us to see all cu
     </details>
 
 
-## Uninstalling the Docker App
+## Removing the Docker App
 
-Let's practice uninstalling our deployed application.
+Let's practice removing our running application.
 
-1. Again from our dev instance, let's look at the full options for `docker app uninstall`.
+1. Again from our dev instance, let's look at the full options for `docker app rm`.
 
     <details>
       <summary>Full output</summary>
       
     ```console
-    $ docker app uninstall --help
-    Usage:  docker app uninstall INSTALLATION_NAME [--target-context TARGET_CONTEXT] [OPTIONS]
+    $ docker app rm --help
+    Usage:  docker app rm INSTALLATION_NAME [--target-context TARGET_CONTEXT] [OPTIONS]
 
-    Uninstall an application
+    Remove an application
 
     Examples:
-    $ docker app uninstall myinstallation --target-context=mycontext
+    $ docker app rm myinstallation --target-context=mycontext
 
     Options:
           --credential-set stringArray   Use a YAML file containing a credential set or a credential set
@@ -152,13 +144,13 @@ Let's practice uninstalling our deployed application.
 
     We'll see that we need to specify the `INSTALLATION_NAME` and the `target-context`.
 
-2. Use the `docker app uninstall` command to remove the application.
+2. Use the `docker app rm` command to remove the application.
 
     <details>
       <summary>Solution/Full Output</summary>
     
     ```console
-    $ docker app uninstall voting-app --target-context swarm
+    $ docker app rm voting-app --target-context swarm
     Removing service voting-app_db
     Removing service voting-app_redis
     Removing service voting-app_result
@@ -183,12 +175,76 @@ Let's practice uninstalling our deployed application.
     ```
     </details>
 
+## Manage your local Docker Application images
 
-## Pushing our Docker App
+1. Now that we know how to manage running applications, let's focus on local application images.
+  Check the `docker app image` manage command with `--help` flag:
 
-Now that we've learned how to deploy a locally-sourced application, let's push our app to Docker Hub and deploy from there!
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app image --help
+    Usage:	docker app image COMMAND
 
-1. Let's first take a look at the various options and flags on the `docker app push` command.
+    Manage application images
+
+    Commands:
+      ls          List application images
+      rm          Remove an application image
+      tag         Create a new tag from an application image
+
+    Run 'docker app image COMMAND --help' for more information on a command.
+    ```
+    </details>
+
+2. List all your local application image using `docker app image ls`. Application images built without a tag will be shown using their id. **NOTE**: All the docker app commands using an Application image name (`image rm`, `image tag`, `run`, `inspect`) can use an Application image ID instead.
+
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app image ls
+    APP IMAGE                                                        APP NAME
+    2f519fef648813aad582c87a0aeeab7cda616447cc7356375ca634650b0ed14b voting-app
+    username/voting-app:v0.1                                         voting-app
+    ```
+    </details>
+
+3. Tag an application image using `docker app image tag` command. You can re-tag an image as much as you want, as you would do with `docker image tag` command. This is usefull if you need to name an unnamed built application before pushing it, or you want to push your application image to a different registry. Let's tag one unnamed pre-built application image (if you need one for this exercise, just re-build the `voting-app` without tagging it). Then list again your application images to check the tags. **NOTE**: default tag is `latest`.
+
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app image tag 2f519fef648813aad582c87a0aeeab7cda616447cc7356375ca634650b0ed14b myregistry/username/voting-app
+    $ docker app image ls
+    APP IMAGE                                                        APP NAME
+    2f519fef648813aad582c87a0aeeab7cda616447cc7356375ca634650b0ed14b voting-app
+    username/hello-world:v0.1                                        voting-app
+    myregistry/username/voting-app:latest                            voting-app
+    ```
+    </details>
+
+4. Remove an application image using `docker app image rm`. You can now remove your unnamed application as it has been tagged and list application images to check it has been cleaned.
+    <details>
+      <summary>Solution/Full Output</summary>
+    
+    ```console
+    $ docker app image rm 2f519fef648813aad582c87a0aeeab7cda616447cc7356375ca634650b0ed14b
+    Deleted: 2f519fef648813aad582c87a0aeeab7cda616447cc7356375ca634650b0ed14b
+    $ docker app image ls
+    APP IMAGE                             APP NAME
+    username/hello-world:v0.1             voting-app
+    myregistry/username/voting-app:latest voting-app
+    ```
+    </details>
+
+## Pushing our Docker Application image
+
+Now that we've learned how to run a locally built application, let's push our app to Docker Hub and run it from there!
+
+1. Let's first take a look at the `docker app push` command. As `docker push` command, this one is extremely simple and doesn't need any flag.
 
     <details>
       <summary>Full output</summary>
@@ -196,29 +252,24 @@ Now that we've learned how to deploy a locally-sourced application, let's push o
     ```console
     $ docker app push --help
 
-    Usage:  docker app push [APP_NAME] --tag TARGET_REFERENCE [OPTIONS]
+    Usage:  docker app push [APP_IMAGE]
 
-    Push an application package to a registry
+    Push an application image to a registry
 
     Examples:
-    $ docker app push myapp --tag myrepo/myapp:mytag
-
-    Options:
-          --insecure-registries strings   Use HTTP instead of HTTPS when pulling from/pushing to those registries
-          --platform strings              For multi-arch service images, only push the specified platforms
-      -t, --tag string                    Target registry reference (default: <name>:<version> from metadata)
+    $ docker app push myrepo/myapp:mytag
     ```
     </details>
 
-2. When pushing, we will tag the application to include your Docker Hub account (`<your-hub-username>/voting-app.dockerapp`) and specify the tag as the current version (which defaulted to `0.1.0`). While not required, we do encourage you to keep the `.dockerapp` suffix on the image name to help make it more obvious that it is a repo containing a Docker App bundle.
+2. Before pushing, make sure you tag the application image to include your Docker Hub account (`<your-hub-username>/voting-app`) and specify the tag as the current version (which defaulted to `latest`).
 
     <details>
       <summary>Solution/Full Output</summary>
     
     ```console
-    $ docker app push --tag mikesir87/voting-app.dockerapp:0.1.0
-    docker.io/mikesir87/voting-app.dockerapp:0.1.0-invoc
-    mikesir87/examplevotingapp_vote
+    $ docker app push username/voting-app:0.1.0
+    docker.io/username/voting-app:0.1.0-invoc
+    username/examplevotingapp_vote
     sha256:a0d4d29d...: Skip (already present)
     redis:alpine
     sha256:ef67270b...: Skip (already present)
@@ -229,19 +280,19 @@ Now that we've learned how to deploy a locally-sourced application, let's push o
     mikesir87/examplevotingapp_result
     sha256:69198c25...: Skip (already present)
     WARN[0003] reference for unknown type: application/vnd.cnab.config.v1+json
-    Successfully pushed bundle to docker.io/mikesir87/voting-app.dockerapp:0.1.0. Digest is sha256:ca706ede7e387173cf28b20e65336299873c072deb422c35a0fd57379b46932e.
+    Successfully pushed bundle to docker.io/username/voting-app.dockerapp:0.1.0. Digest is sha256:ca706ede7e387173cf28b20e65336299873c072deb422c35a0fd57379b46932e.
     ```
     </details>
 
-    The output may look slightly different, as we had already previously pushed the app before capturing the output to display above. In addition, you'll see a different sha256, which can be used for addressing apps too. However, you should see a "Successfully pushed bundle" message at the end.
+    The output may look slightly different, as we had already previously pushed the app image before capturing the output to display above. In addition, you'll see a different sha256, which can be used for addressing apps too. However, you should see a "Successfully pushed" message at the end.
 
-3. Now, let's deploy our remotely-pushed application bundle to the cluster. All we have to do is specify the remote application as the application name and Docker App will fetch the image and then use the bundled name as the _actual_ name of the installed app (which can be overridden by using the `--name` option). Don't forget to specify the `target-context` too!
+3. Now, let's run our remotely-pushed application image to the cluster. All we have to do is specify the remote application image and Docker App will fetch the image and then use it for deployment. Don't forget to specify the `target-context` too!
 
     <details>
       <summary>Solution/Full Output</summary>
     
     ```console
-    $ docker app install mikesir87/voting-app.dockerapp:0.1.0 --target-context swarm
+    $ docker app install username/voting-app:0.1.0 --name voting-app --target-context swarm
     Creating network back-tier
     Creating network front-tier
     Creating service voting-app_db
@@ -255,13 +306,13 @@ Now that we've learned how to deploy a locally-sourced application, let's push o
 
     And that's it! You can go onto either of the Swarm nodes and use the port badges to open the app (may take a few seconds for it pull the images and start the containers).
 
-5. Once you've validated that it works, go ahead and uninstall the application so we have a clean slate for our next exercise.
+5. Once you've validated that it works, go ahead and remove the application so we have a clean slate for our next exercise.
 
     <details>
       <summary>Output</summary>
     
     ```console
-    $ docker app uninstall voting-app --target-context swarm
-    Application "voting-app" uninstalled on context "swarm"
+    $ docker app rm voting-app --target-context swarm
+    Application "voting-app" removed on context "swarm"
     ```
     </details>
