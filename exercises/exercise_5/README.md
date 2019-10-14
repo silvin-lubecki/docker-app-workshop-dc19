@@ -76,13 +76,19 @@ To update the vote and results services, let's do the following:
 
 3. Do the same thing for the `results` service, but use `results.enabled` as the parameter name.
 
-4. Use the `docker app inspect` command and set the `vote.enabled` parameter to false. You'll see that the `vote` service is not included, as well as the `vote.enabled` parameter is set to false.
+4. Do not forget to build the application image.
+
+```sh
+$ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp
+```
+
+5. Use the `docker app inspect` command. You'll see the `vote.enabled` and `results.enabled` parameters are set to the default value `true`.
 
     <details>
       <summary>Sample Output</summary>
 
     ```console
-    $ docker app inspect -s vote.enabled=false
+    $ docker app inspect <your-hub-username>/voting-app.dockerapp --pretty
     voting-app 0.1.0
 
     Maintained by: root
@@ -90,6 +96,7 @@ To update the vote and results services, let's do the following:
     Services (4) Replicas Ports Image
     ------------ -------- ----- -----
     results      1        5001  mikesir87/examplevotingapp_result
+    vote         2        5000  mikesir87/examplevotingapp_vote
     redis        1              redis:alpine
     db           1              postgres:9.4
     worker       1              dockersamples/examplevotingapp_worker
@@ -108,66 +115,91 @@ To update the vote and results services, let's do the following:
     optionA         Cats
     optionB         Dogs
     results.enabled true
-    vote.enabled    false
+    vote.enabled    true
     ```
     </details>
 
+## Using our Application Stack for development
 
-## Using our Application Stack for local development
+In this section we will see how we can use the `x-enabled` flag to develop and test a service of our application.
 
-While doing local development, we don't necessarily need to run multiple replicas of any service. We also may not have a full swarm locally to deploy everything, which could cause problems (for example, one a single-node swarm, some placement constraints may fail if you're trying to place things only on a worker node).
+1. First of all we need to add a `attachable: true` to the frontend network in the `docker-compose.yml`. This option is required to allow a standalone container to attach to an overlay network created by a stack.
 
-Remember that `docker app render` can render a compose file. The Docker Compose command can read a compose file from stdin, so we can pipe the two commands together.
+    <details>
+      <summary>Solution</summary>
 
-1. In your dev instance, spin up the application stack using Docker Compose. Remember to disable the `vote` service when rendering the app.
+    ```yaml
+    networks:
+      frontend:
+        name: front-tier
+        attachable: true
+    ```
+    </details>    
+
+
+2. Deploy the application without enabling the `vote` service. Ensure with the `docker service ls` that the vote service has not been deployed
+
+    <details>
+      <summary>Solution</summary>
 
     ```console
-    $ docker app render -s vote.enabled=false | docker-compose -f - up -d
+    $ docker app deploy <your-hub-username>/voting-app.dockerapp --name voting-app -s vote.enabled=false  --target-context=swarm
+    Creating network front-tier
+    Creating network back-tier
+    Creating service voting-app_db
+    Creating service voting-app_results
+    Creating service voting-app_redis
+    Creating service voting-app_worker
+
+    $ docker service ls
+    ID                  NAME                 MODE                REPLICAS            IMAGE                                          PORTS
+    89zwowq45acp        voting-app_db        replicated          1/1                 postgres:9.4                                   
+    nza74rbbrwde        voting-app_redis     replicated          1/1                 redis:alpine                                   
+    dlhpp09kfhee        voting-app_results   replicated          1/1                 mikesir87/examplevotingapp_result:latest       
+    j24jm0lyp8de        voting-app_worker    replicated          1/1                 dockersamples/examplevotingapp_worker:latest   
     ```
+    </details>
 
-    The `-f -` flag in the compose command uses the compose file coming from stdin. You should see all but the `vote` service startup.
+3. Deploy the `vote` service as a standalone container, attached to the `frontend` network with `OPTION_A` and `OPTION_B` environment variable set to `Cats` and `Dogs`. You should see the port badge for `5000` appear on the master node. Once it appears, click on it to validate the `vote` service has started.
 
-2. Clone the voting app repo (found at github.com/mikesir87/example-voting-app).
+    <details>
+      <summary>Solution</summary>
+
+    ```console
+    $ docker --context swarm container run --name voting-app-vote-svc-dev -d --rm -e OPTION_A=Cats -e OPTION_B:Dogs -p 5000:80 --network front-tier mikesir87/examplevotingapp_vote
+    ```
+    <details>
+
+4. Clone the voting app repo (found at github.com/mikesir87/example-voting-app).
 
     ```console
     $ git clone https://github.com/mikesir87/example-voting-app.git
     ```
 
-3. In the repo's directory, start _only_ the `vote` service in the `docker-compose.yml` file. You should see it start up and the port badge for `5000` appear. Once it appears, click on it to validate the `vote` service has started.
+5. Now, let's make a change to the application! In the `vote/templates/index.html` file, let's make a change. You can change anything, but one idea might be to adjust the "Tip: you can change your vote" text to say "Tip: try changing your vote!". After saving the change, refresh the page displaying the vote app and you should see the change.
+
+6. Now that we've made the change we want to save in our app, let's stop the dev container.
 
     ```console
-    $ docker-compose up -d vote
-    Compose does not use swarm mode to deploy services to multiple nodes in a swarm. All containers will be scheduled on the current node.
-
-    To deploy your application across the swarm, use `docker stack deploy`.
-
-    Creating example-voting-app_vote_1 ... done
+    $ docker container stop $(docker container ls --filter name=voting-app-vote-svc-dev -q)
     ```
 
-4. Now, let's make a change to the application! In the `vote/templates/index.html` file, let's make a change. You can change anything, but one idea might be to adjust the "Tip: you can change your vote" text to say "Tip: try changing your vote!". After saving the change, refresh the page displaying the vote app and you should see the change.
-
-5. Now that we've made the change we want to save in our app, let's stop the dev container.
-
-    ```console
-    $ docker-compose down
-    Stopping example-voting-app_vote_1 ... done
-    Removing example-voting-app_vote_1 ... done
-    ```
-
-6. Let's build our new image and push it to Docker Hub. Tag the image using `[your-docker-hub-username]/updated-vote-app`.
+7. Let's build our new image and push it to Docker Hub. Tag the image using `[your-docker-hub-username]/updated-vote-app`.
 
     ```console
     $ cd vote
-    $ docker build -t mikesir87/updated-vote-app .
+    $ docker build -t <your-docker-hub-username>/updated-vote-app .
+    …
+    $ docker push <your-docker-hub-username>/updated-vote-app
     ```
 
-6. Back in our docker app, let's update the `vote` service to use our new image.
+8. Back in our docker app, let's update the `vote` service to use our new image.
 
     ```yaml
     services:
       vote:
-        image: mikesir87/updated-vote-app
+        image: <your-docker-hub-username>/updated-vote-app
     ```
 
-7. Push your updated app and then deploy it to your cluster. Validate that your vote service has the updated image!
+9. Build your updated app and then deploy it to your cluster. Validate that your vote service has the updated image!
 
