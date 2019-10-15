@@ -143,7 +143,7 @@ In this section we will see how we can use the `x-enabled` flag to develop and t
       <summary>Solution</summary>
 
     ```console
-    $ docker app deploy <your-hub-username>/voting-app.dockerapp --name voting-app -s vote.enabled=false  --target-context=swarm
+    $ docker app run <your-hub-username>/voting-app.dockerapp --name voting-app -s vote.enabled=false  --target-context=swarm
     Creating network front-tier
     Creating network back-tier
     Creating service voting-app_db

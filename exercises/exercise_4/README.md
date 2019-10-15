@@ -149,7 +149,7 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
       <summary>Full output</summary>
     
     ```console
-    $ docker app deploy voting-app -s options.A=Moby -s options.B=Molly --target-context=swarm
+    $ docker app run voting-app -s options.A=Moby -s options.B=Molly --target-context=swarm
     Creating network back-tier
     Creating network front-tier
     Creating service voting-app_redis
