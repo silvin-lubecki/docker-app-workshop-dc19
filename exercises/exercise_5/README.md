@@ -79,7 +79,7 @@ To update the vote and results services, let's do the following:
 4. Do not forget to build the application image.
 
 ```sh
-$ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp
+$ docker app build voting-app -t myuser/voting-app.dockerapp
 ```
 
 5. Use the `docker app inspect` command. You'll see the `vote.enabled` and `results.enabled` parameters are set to the default value `true`.
@@ -88,7 +88,7 @@ $ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp
       <summary>Sample Output</summary>
 
     ```console
-    $ docker app inspect <your-hub-username>/voting-app.dockerapp --pretty
+    $ docker app inspect myuser/voting-app.dockerapp --pretty
     voting-app 0.1.0
 
     Maintained by: root
@@ -143,7 +143,7 @@ In this section we will see how we can use the `x-enabled` flag to develop and t
       <summary>Solution</summary>
 
     ```console
-    $ docker app deploy <your-hub-username>/voting-app.dockerapp --name voting-app -s vote.enabled=false  --target-context=swarm
+    $ docker app deploy myuser/voting-app.dockerapp --name voting-app -s vote.enabled=false  --target-context=swarm
     Creating network front-tier
     Creating network back-tier
     Creating service voting-app_db
@@ -188,9 +188,9 @@ In this section we will see how we can use the `x-enabled` flag to develop and t
 
     ```console
     $ cd vote
-    $ docker build -t <your-docker-hub-username>/updated-vote-app .
+    $ docker build -t myuser/updated-vote-app .
     …
-    $ docker push <your-docker-hub-username>/updated-vote-app
+    $ docker push myuser/updated-vote-app
     ```
 
 8. Back in our docker app, let's update the `vote` service to use our new image.
@@ -198,7 +198,7 @@ In this section we will see how we can use the `x-enabled` flag to develop and t
     ```yaml
     services:
       vote:
-        image: <your-docker-hub-username>/updated-vote-app
+        image: myuser/updated-vote-app
     ```
 
 9. Build your updated app and then deploy it to your cluster. Validate that your vote service has the updated image!
