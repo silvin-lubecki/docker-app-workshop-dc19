@@ -48,13 +48,14 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
     ```
     </details>
 
-2. Before setting the parameter, run `docker app inspect` to see what happens.
+2. Before setting the parameter, run `docker app build voting-app -t <your-hub-username>/voting-app.dockerapp && docker app inspect <your-hub-username>/voting-app.dockerapp --pretty` to see what happens.
 
     <details>
       <summary>Full Output</summary>
     
     ```console
-    $ docker app inspect
+    $ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp && docker app inspect <your-hub-username>/voting-app.dockerapp
+    … # Build log
     inspect failed: Action "com.docker.app.inspect" failed: failed to load Compose file: invalid interpolation format for services.vote.environment.OPTIONS_A: "required variable options.A is missing a value". You may need to escape any $ with another $.
     ```
     </details>
@@ -73,13 +74,15 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
     ```
     </details>
 
-4. Now, re-run the `docker app inspect` command to look at the output. You should see the parameters with their default values in the output now!
+4. Now, re-run the `docker app inspect --pretty` command to look at the output. Do not forget to rebuild the application image. You should see the parameters with their default values in the output now!
 
     <details>
       <summary>Full output</summary>
     
     ```console
-    $ docker app inspect
+    $ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp
+    … 
+    $ docker app inspect --pretty
     voting-app 0.1.0
 
     Maintained by: root
@@ -108,48 +111,13 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
     ```
     </details>
 
-5. Now, try running the same `docker app inspect`, but add the `-s` flag to set options.A to "Moby" and optionB to "Molly". You should see the parameter values now have the replaced values.
+5. At this point, go ahead and deploy the Docker App
 
     <details>
       <summary>Full output</summary>
     
     ```console
-    $ docker app inspect -s options.A=Moby -s options.B=Molly
-    voting-app 0.1.0
-
-    Maintained by: root
-
-    Services (5) Replicas Ports Image
-    ------------ -------- ----- -----
-    db           1              postgres:9.4
-    worker       1              dockersamples/examplevotingapp_worker
-    result       1        5001  mikesir87/examplevotingapp_result
-    vote         2        5000  mikesir87/examplevotingapp_vote
-    redis        1              redis:alpine
-
-    Networks (2)
-    ------------
-    backend
-    frontend
-
-    Volume (1)
-    ----------
-    db-data
-
-    Parameters (2) Value
-    -------------- -----
-    options.A      Moby
-    options.B      Molly
-    ```
-    </details>
-
-6. At this point, go ahead and deploy the Docker App with these parameters (options.A=Moby and options.B=Molly)
-
-    <details>
-      <summary>Full output</summary>
-    
-    ```console
-    $ docker app deploy voting-app -s options.A=Moby -s options.B=Molly --target-context=swarm
+    $ docker app run voting-app --name voting-app --target-context=swarm
     Creating network back-tier
     Creating network front-tier
     Creating service voting-app_redis
@@ -161,20 +129,20 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
     ```
     </details>
 
-    Once it's deployed, go ahead and check out the vote and results apps. You should see that we're now using Moby vs Molly!
+    Once it's deployed, go ahead and check out the vote and results apps. You should see that we're now using Cats vs Dogs!
 
 
 ## Upgrading a Deployed Application
 
 With the app deployed, let's change the settings by "upgrading" the application bundle. To do so, we can use the `docker app upgrade` command. While we will change settings in the upgrade here, you can use this command to actually deploy an updated version of the app.
 
-Let's pretend that Moby had gotten more votes, but we really want Molly to win (since she's cuter anyways)! Let's swap the values, making `options.A=Molly` and `options.B=Moby`.
+Suddenly the project manager and the design team changed their minds. Cats and Dogs are so 2018, voting options must be changed to Moby and Molly. Add the `-s` flag to upgrade command to set options.A to "Moby" and optionB to "Molly".
 
 <details>
   <summary>Solution/Output</summary>
 
 ```console
-$ docker app upgrade voting-app -s options.A=Molly -s options.B=Moby --target-context=swarm
+$ docker app upgrade voting-app -s options.A=Moby -s options.B=Molly --target-context=swarm
 Updating service voting-app_results (id: tpugiytt4eq9p88lvb8900pmq)
 Updating service voting-app_vote (id: d49hxltgvg5faie0kc735oy42)
 Updating service voting-app_redis (id: x9hpof20yumf2gv3mbbd9g1i5)
@@ -185,7 +153,7 @@ Application "voting-app" upgraded on context "swarm"
 </details>
 <br/>
 
-After a moment, you should be able to open either service and see the options have been swapped. Now, Molly is guaranteed to win the vote! :tada:
+After a moment, you should be able to open either service and see the options have been updated. Welcome to 2019! :tada:
 
 
 ## More Practice: Prepare for production
@@ -350,5 +318,5 @@ Now we will create a new parameters file for **production**, with different para
 
 Then we are ready for installation:
 ```sh
-$ docker app install --parameters-file=production.yml --target-context=swarm
+$ docker app run voting-app --parameters-file=production.yml --target-context=swarm
 ```
