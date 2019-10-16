@@ -47,47 +47,102 @@ The first artifact is the bundle file, which defines the following parts:
 - List of component images (compose services in our case)
 - Custom actions: every bundle must implement the 3 mandatory actions **install**/**upgrade**/**uninstall**
 - Parameters for these actions
+- Parameter definitions, with JSON Schema
 - Credentials
 
 Here is an example of a simple `bundle.json`:
 
 ```json
-{
-	"name": "simple",
-	"version": "1.0.0",
-	"description": "a very simple application",
-	"maintainers": [
-		{
-			"name": "DAP Workshop",
-			"email": "dapworkshop@docker.com"
-		}
-	],
-	"invocationImages": [
-		{
-			"imageType": "docker",
-			"image": "simple:1.0.0-invoc"
-		}
-	],
-	"images": {
-		"api": {
-			"imageType": "docker",
-			"image": "simple-component:1.0.0",
-			"description": "simple component"
-		}
-	},
-	"actions": {
-		"io.cnab.status": {}
-	},
-	"parameters": {
-		"simple_component_port": {
-			"type": "string",
-			"defaultValue": "8080",
-			"destination": {
-				"env": "SIMPLE_COMPONENT_PORT"
-			}
-		}
-	},
-	"credentials": {}
+{ 
+   "credentials":{ 
+      "hostkey":{ 
+         "env":"HOST_KEY",
+         "path":"/etc/hostkey.txt"
+      }
+   },
+   "custom":{ 
+      "com.example.backup-preferences":{ 
+         "frequency":"daily"
+      },
+      "com.example.duffle-bag":{ 
+         "icon":"https://example.com/icon.png",
+         "iconType":"PNG"
+      }
+   },
+   "definitions":{ 
+      "http_port":{ 
+         "default":80,
+         "maximum":10240,
+         "minimum":10,
+         "type":"integer"
+      },
+      "port":{ 
+         "maximum":65535,
+         "minimum":1024,
+         "type":"integer"
+      },
+      "string":{ 
+         "type":"string"
+      },
+      "x509Certificate":{ 
+         "contentEncoding":"base64",
+         "contentMediaType":"application/x-x509-user-cert",
+         "type":"string",
+         "writeOnly":true
+      }
+   },
+   "description":"An example 'thin' helloworld Cloud-Native Application Bundle",
+   "images":{ 
+      "my-microservice":{ 
+         "contentDigest":"sha256:aaaaaaaaaaaa...",
+         "description":"my microservice",
+         "image":"technosophos/microservice:1.2.3"
+      }
+   },
+   "invocationImages":[ 
+      { 
+         "contentDigest":"sha256:aaaaaaa...",
+         "image":"technosophos/helloworld:0.1.0",
+         "imageType":"docker"
+      }
+   ],
+   "maintainers":[ 
+      { 
+         "email":"matt.butcher@microsoft.com",
+         "name":"Matt Butcher",
+         "url":"https://example.com"
+      }
+   ],
+   "name":"helloworld",
+   "outputs":{ 
+      "clientCert":{ 
+         "definition":"x509Certificate",
+         "path":"/cnab/app/outputs/clientCert"
+      },
+      "hostName":{ 
+         "applyTo":[ 
+            "install"
+         ],
+         "definition":"string",
+         "description":"the hostname produced installing the bundle",
+         "path":"/cnab/app/outputs/hostname"
+      },
+      "port":{ 
+         "definition":"port",
+         "path":"/cnab/app/outputs/port"
+      }
+   },
+   "parameters":{ 
+      "backend_port":{ 
+         "definition":"http_port",
+         "description":"The port that the back-end will listen on",
+         "destination":{ 
+            "env":"BACKEND_PORT"
+         }
+      }
+   },
+   "schemaVersion":"v1.0.0",
+   "version":"0.1.2"
 }
 ```
 
@@ -120,7 +175,7 @@ When the `CNAB runtime` executes an action, it will follow these steps:
 Now lets dig a little into docker app CNAB implementation. We will use for that our previous `voting-app` application package. Build it:
 
 ```sh
-$ docker app build voting-app.dockerapp
+$ docker app build voting-app
 [+] Building 0.2s (6/6) FINISHED                                                                                 
  => [internal] load remote build context                                                                    0.0s
  => copy /context /                                                                                         0.1s
