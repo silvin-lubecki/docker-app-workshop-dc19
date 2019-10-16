@@ -176,24 +176,25 @@ To install Docker App, you can download the release directly from the [Releases 
 
 Docker CLI plugins are installed in the `~/.docker/cli-plugins` directory.
 
-1. Run the `dapworkshop/dc2019-workshop` image, mounting the home directory into the container.
+1. Run the `dapworkshop/workshop:0.9` image, mounting the home directory into the container.
 
     ```console
-    $ docker run -v ~/:/workshop dapworkshop/dc2019-workshop
+    $ docker run -v ~/:/workshop dapworkshop/workshop:0.9
     ```
 
 2. Run `tree .docker` and you'll see the plugin installed!
 
     ```console
-    $ tree .docker
-    .docker
-    └── cli-plugins
-        └── docker-app
+    $ tree ~/.docker/
+    /root/.docker/
+    ├── cli-plugins
+    │   └── docker-app
+    └── config.json
 
-    1 directory, 1 file
+    1 directory, 2 files
     ```
 
-**Congratulations** :clap: You just installed yourself your first Docker CLI plugin!
+**Congratulations** :clap: You just installed your first Docker CLI plugin on your own!
 
 Now the workshop can really start!
 
@@ -230,14 +231,7 @@ Commands:
 Docker will always come with a **default** context:
 ```console
 $ docker context ls
-NAME                DESCRIPTION                               DOCKER ENDPOINT               KUBERNETES ENDPOINT   O
-
-
-
-
-
-
-HESTRATOR
+NAME                DESCRIPTION                               DOCKER ENDPOINT               KUBERNETES ENDPOINT   OHESTRATOR
 default *           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock                         swarm
 ```
 **Note:** The little star (**\***) indicates which context is currently in use.
