@@ -48,13 +48,13 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
     ```
     </details>
 
-2. Before setting the parameter, run `docker app build voting-app -t <your-hub-username>/voting-app.dockerapp && docker app inspect <your-hub-username>/voting-app.dockerapp --pretty` to see what happens.
+2. Before setting the parameter, run `docker app build voting-app -t username/voting-app:0.1.0 && docker app inspect username/voting-app:0.1.0 --pretty` to see what happens.
 
     <details>
       <summary>Full Output</summary>
     
     ```console
-    $ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp && docker app inspect <your-hub-username>/voting-app.dockerapp
+    $ docker app build voting-app -t username/voting-app:0.1.0 && docker app inspect username/voting-app:0.1.0
     … # Build log
     inspect failed: Action "com.docker.app.inspect" failed: failed to load Compose file: invalid interpolation format for services.vote.environment.OPTIONS_A: "required variable options.A is missing a value". You may need to escape any $ with another $.
     ```
@@ -80,12 +80,15 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
       <summary>Full output</summary>
     
     ```console
-    $ docker app build voting-app -t <your-hub-username>/voting-app.dockerapp
+    $ docker app build voting-app -t username/voting-app:0.1.0
     … 
-    $ docker app inspect --pretty
-    voting-app 0.1.0
-
-    Maintained by: root
+    $ docker app inspect --pretty username/voting-app:0.1.0
+    version: 0.1.0
+    name: voting-app
+    description: ""
+    maintainers:
+    - name: root
+      email: ""
 
     Services (5) Replicas Ports Image
     ------------ -------- ----- -----
@@ -117,7 +120,7 @@ By default, the vote and results services let you vote between Dogs and Cats. Ho
       <summary>Full output</summary>
     
     ```console
-    $ docker app run voting-app --name voting-app --target-context=swarm
+    $ docker app run username/voting-app:0.1.0 --name voting-app --target-context=swarm
     Creating network back-tier
     Creating network front-tier
     Creating service voting-app_redis
@@ -318,5 +321,5 @@ Now we will create a new parameters file for **production**, with different para
 
 Then we are ready for installation:
 ```sh
-$ docker app run voting-app --parameters-file=production.yml --target-context=swarm
+$ docker app run username/voting-app:0.1.0 --parameters-file=production.yml --target-context=swarm
 ```

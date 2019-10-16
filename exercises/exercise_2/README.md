@@ -137,7 +137,7 @@ Once our application is ready, we can build it. Building an application means
       <summary>Solution/Full Output</summary>
 
     ```bash
-    $ docker app build voting-app.dockerapp --tag myapp/voting-app:0.1.0
+    $ docker app build voting-app.dockerapp --tag username/voting-app:0.1.0
     [+] Building 0.0s (6/6) FINISHED                                                                           
     => CACHED [internal] load remote build context                                                       0.0s
     => CACHED copy /context /                                                                            0.0s
@@ -148,11 +148,14 @@ Once our application is ready, we can build it. Building an application means
     => => exporting layers                                                                               0.0s
     => => writing image sha256:89ed7688293f72d01706c501d7657e26c3097b33ae4d9cd8ad0853bbe813923b          0.0s
     Successfully built service images
-    Successfully build docker.io/myapp/voting-app:0.1.0
+    Successfully build docker.io/username/voting-app:0.1.0
     ```
     **NOTE**: The output may differ here.
+    :warning: Replace `username` with your own Docker Hub nick handle.
     </details>
 :tada: You just built your first Docker Application Image ! It's now ready to be inspected, run or pushed!
+
+**NOTE**: If you don't provide a tag during build, an application ID will be generated.
 
 ## Inspecting our Docker Application
 
@@ -165,7 +168,7 @@ This JSON output can be used programmatically by other tools.
       <summary>Solution/Full Output</summary>
 
     ```bash
-    $ docker app inspect myapp/voting-app:0.1.0
+    $ docker app inspect username/voting-app:0.1.0
     {
         "Metadata": {
             "version": "0.1.0",

@@ -79,7 +79,7 @@ To update the vote and results services, let's do the following:
 4. Do not forget to build the application image.
 
 ```sh
-$ docker app build voting-app -t myuser/voting-app.dockerapp
+$ docker app build voting-app -t username/voting-app:0.1.0
 ```
 
 5. Use the `docker app inspect` command. You'll see the `vote.enabled` and `results.enabled` parameters are set to the default value `true`.
@@ -88,10 +88,13 @@ $ docker app build voting-app -t myuser/voting-app.dockerapp
       <summary>Sample Output</summary>
 
     ```console
-    $ docker app inspect myuser/voting-app.dockerapp --pretty
-    voting-app 0.1.0
-
-    Maintained by: root
+    $ docker app inspect username/voting-app:0.1.0 --pretty
+    version: 0.1.0
+    name: voting-app
+    description: ""
+    maintainers:
+    - name: root
+      email: ""
 
     Services (4) Replicas Ports Image
     ------------ -------- ----- -----
@@ -143,7 +146,7 @@ In this section we will see how we can use the `x-enabled` flag to develop and t
       <summary>Solution</summary>
 
     ```console
-    $ docker app deploy myuser/voting-app.dockerapp --name voting-app -s vote.enabled=false  --target-context=swarm
+    $ docker app run username/voting-app:0.1.0 --name voting-app -s vote.enabled=false  --target-context=swarm
     Creating network front-tier
     Creating network back-tier
     Creating service voting-app_db
@@ -202,4 +205,3 @@ In this section we will see how we can use the `x-enabled` flag to develop and t
     ```
 
 9. Build your updated app and then deploy it to your cluster. Validate that your vote service has the updated image!
-
