@@ -108,8 +108,8 @@ Before we're ready to ship our application, we should validate it to make sure e
 ## Building our Application 
 
 Once our application is ready, we can build it. Building an application means
-- building all the service images
-- building the invocation image (we will look closely at what is an invocation image in exerise 6).
+- building all the service images, if they declare a build section
+- building the invocation image (we will look closely at what is an invocation image in [exercise 6](../exercise_6#invocation-image)).
 - building the application image
 
 1. Let's look at `docker app build` and its options
