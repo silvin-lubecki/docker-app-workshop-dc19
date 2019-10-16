@@ -107,14 +107,12 @@ Before we're ready to ship our application, we should validate it to make sure e
 
 ## Building our Application 
 
-Once our application is ready, we can build it. Building an application means building all the service images and building 
-the invocation image (we will look closely at what is an invocation image in exerise 6).
+Once our application is ready, we can build it. Building an application means
+- building all the service images
+- building the invocation image (we will look closely at what is an invocation image in exerise 6).
+- building the application image
 
 1. Let's look at `docker app build` and its options
-
-    <details>
-      <summary>Solution/Full Output</summary>
-
     ```bash
     $ docker app build --help
 
@@ -132,7 +130,6 @@ the invocation image (we will look closely at what is an invocation image in exe
         --pull              Always attempt to pull a newer version of the image
     -t, --tag string        Application image and optionally a tag in the 'image:tag' format
     ```
-    </details>
 
 2. Build your application and give it a tag.
 
@@ -153,11 +150,14 @@ the invocation image (we will look closely at what is an invocation image in exe
     Successfully built service images
     Successfully build docker.io/myapp/voting-app:0.1.0
     ```
+    **NOTE**: The output may differ here.
     </details>
+:tada: You just built your first Docker Application Image ! It's now ready to be inspected, run or pushed!
 
 ## Inspecting our Docker Application
 
-We can use the `docker app inspect` command to get a quick output of all of the services, number of replicas, ports, and the image being used. This could allow an ops admin to quickly check all the elements before deploying to production, without having to manually parse the compose file.
+We can use the `docker app inspect` command to get a quick overview of all of the services, number of replicas, ports, and the image being used. This allows an ops admin to review all main the elements before deploying to production, without having to manually parse the compose file.
+This JSON output can be used programmatically by other tools.
 
 1. Run the `docker app inspect <TAG>` command to inspect our application.
 
@@ -218,4 +218,33 @@ We can use the `docker app inspect` command to get a quick output of all of the 
     ```
     </details>
 
-Now try to run the same command by giving it the `--pretty` flag.
+`docker app inspect` also provides an pretty printer, using `--pretty` flag. Let's try it :thumbsup:
+1. Run the `docker app inspect <TAG> --pretty` command to inspect our application.
+
+    <details>
+      <summary>Solution/Full Output</summary>
+
+    ```bash
+    $ docker app inspect myapp/voting-app:0.1.0 --pretty
+    version: 0.1.0
+    name: voting-app
+    description: ""
+    maintainers:
+    - name: root
+    email: ""
+
+
+    Services (5) Replicas Ports Image
+    ------------ -------- ----- -----
+    db           1              postgres:9.4
+    redis        1              redis:alpine
+    results      1              mikesir87/examplevotingapp_result
+    vote         2              mikesir87/examplevotingapp_vote
+    worker       1              dockersamples/examplevotingapp_worker
+
+    Networks (2)
+    ------------
+    backend
+    frontend
+    ```
+    </details>
