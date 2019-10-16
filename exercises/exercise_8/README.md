@@ -20,8 +20,7 @@ By the end of this exercise you will:
 Let's put our hands on what we just saw in the [Exercise 6](../exercise_6/README.md) and create our first CNAB!
 
 1. Create a new directory called `simple`
-1. In it, copy/paste the previous bundle example in a new file named `bundle.json`
-1. Still in `simple`, create the following hierarchy:  
+2. Create the following hierarchy (just touching empty files for now):
 
     ```bash
     $ tree simple
@@ -36,25 +35,64 @@ Let's put our hands on what we just saw in the [Exercise 6](../exercise_6/README
     3 directories, 3 files
     ```
 
-### Creating the Dockerfile for the invocation image
+### Create the `bundle.json`
+
+We will create a simple `bundle.json`, declaring one invocation image and one parameter.
+
+1. Edit `simple/bundle.json`
+1. Add an invocation image with the following name `username/simple:1.0.0-invoc` (:warning: use your own docker hub account).
+1. Add an `integer` parameter called `port` and available as an environment variable (`$PORT_PARAMETER`). Add its parameter definition.
 
 <details>
     <summary>Solution</summary>
 
-```Dockerfile
-FROM alpine:3.9.3
-COPY cnab/app/run /cnab/app/run
-RUN chmod +x /cnab/app/run
-CMD /cnab/app/run
+```json
+{
+    "name": "simple",
+    "version": "1.0.0",
+    "description": "a very simple CNAB Bundle",
+    "maintainers": [
+        {
+            "name": "DAP Workshop",
+            "email": "dapworkshop@docker.com"
+        }
+    ],
+    "invocationImages": [
+        {
+            "imageType": "docker",
+            "image": "username/simple:1.0.0-invoc"
+        }
+    ],
+    "definitions":{ 
+      "port":{ 
+         "maximum":65535,
+         "minimum":1024,
+         "type":"integer"
+      }
+    },
+    "parameters":{ 
+      "port":{ 
+         "definition":"port",
+         "destination":{ 
+            "env":"PORT_PARAMETER"
+         }
+      }
+   },
+   "schemaVersion":"v1.0.0"
+}
 ```
 </details>
 <br/>
 
-### Creating the CNAB run executable
-- Read the environment variable `CNAB_ACTION` and print a specific action result on the standard output. It must also fail if the action is unknown. According to our `bundle.json`, it must understand `install`/`upgrade`/`uninstall`/`io.cnab.status` actions.
-- For each action, print the installation name.
-- The `install` action must print the bundle name and the bundle version
-- The `io.cnab.status` action must print the current port parameter
+### Create the CNAB `run` executable
+
+We will create a simple bash script which can react to CNAB actions.
+
+1. Edit `simple/cnab/app/run`
+1. Read the environment variable `CNAB_ACTION` and print a specific action result on the standard output. It must also fail if the action is unknown. According to our `bundle.json`, it must understand `install`/`upgrade`/`uninstall` actions.
+1. For each action, print the installation name.
+1. The `install` action must print the bundle name and the bundle version.
+1. The `install` and `upgrade` actions must print the `port` parameter (in `$PORT_PARAMETER`).
 
 <details>
     <summary>Solution</summary>
@@ -69,16 +107,14 @@ case $action in
     install)
     echo "Install action"
     echo "Bundle $CNAB_BUNDLE_NAME version $CNAB_BUNDLE_VERSION"
+    echo "Port $PORT_PARAMETER"
     ;;
     uninstall)
     echo "Uninstall action"
     ;;
     upgrade)
     echo "Upgrade action"
-    ;;
-    io.cnab.status)
-    echo "Status action"
-    echo "current simple_component_port $SIMPLE_COMPONENT_PORT" 
+    echo "Upgraded port $PORT_PARAMETER"
     ;;
     *)
     echo "Failure: unknown action $action"
@@ -89,10 +125,24 @@ echo "Action $action complete for $name"
 ```
 </details>
 
-### Building our invocation image
+### Create the `Dockerfile` for the invocation image
+
+<details>
+    <summary>Solution</summary>
+
+```Dockerfile
+FROM alpine:3.9.3
+COPY cnab/app/run /cnab/app/run
+RUN chmod +x /cnab/app/run
+CMD /cnab/app/run
+```
+</details>
+<br/>
+
+### Build our invocation image
 ```sh
 $ cd simple
-$ docker build -t simple:1.0.0-invoc -f cnab/build/Dockerfile .
+$ docker build -t username/simple:1.0.0-invoc -f cnab/build/Dockerfile .
 [+] Building 0.7s (7/7) FINISHED
  => [internal] load .dockerignore                                                                                                                                               0.0s
  => => transferring context: 2B                                                                                                                                                 0.0s
@@ -112,99 +162,61 @@ $ docker build -t simple:1.0.0-invoc -f cnab/build/Dockerfile .
 We have now a `bundle.json` AND an invocation image `simple:1.0.0-invoc`! Congratulations you have made your first CNAB bundle!!! :tada:
 It's time to play with it using Docker App!
 
+## Push the bundle to Docker Hub
+
+Now we need push the invocation image on the hub to make it available, before pushing the bundle itself.
+```console
+$ docker push username/simple:1.0.0-invoc
+```
+Then we will use `cnab-to-oci`, the standard tool to push and pull CNAB bundles to a registry.
+**NOTE**: Sources can be found here https://github.com/docker/cnab-to-oci
+You will find the tool in your home directory: `~/cnab-to-oci`
+
+```console
+$ ./cnab-to-oci push simple/bundle.json --auto-update-bundle --target username/simple:v0.1
+Starting to copy image username/simple:1.0.0-invoc...
+Completed image username/simple:1.0.0-invoc copy
+Pushed successfully, with digest "sha256:f0bbfb67115b8517f3880a00f7b179208961482a2c7cb4591c6407edc72ee971"
+```
+:tada: Our bundle has been pushed on the Docker Hub and is now available for docker app!
 ## Use Docker App as a standard CNAB runtime
 
 Docker App is a standard CNAB runtime. It can execute the following actions on any CNAB bundle:
 - install
 - upgrade
-- io.cnab.status
 - uninstall
 
-**EXERCISE**: Let's play a little with our bundle, try to install, status, upgrade with another port, status again, then uninstall.
+**EXERCISE**: Let's play a little with our bundle, try to run, upgrade with another port, then remove the application.
 
 <details>
     <summary>Solution</summary>
 
-* **install** the application:
+* **Run** the application:
 ```sh
-$ docker app install bundle.json --name my-simple-app
+$ docker app run username/simple:v0.1 --name simple_app  --set port=4242
+Unable to find application image "username/simple:v0.1" locally
+Pulling from registry...
 Install action
 Bundle simple version 1.0.0
-Action install complete for my-simple-app
-Application "my-simple-app" installed on context "dev"
-```
-
-* **status** command queries the `status` action and shows the parameters and the last action result: 
-```sh
-$ docker app status my-simple-app
-INSTALLATION
-------------
-Name:        my-simple-app
-Created:     28 seconds
-Modified:    27 seconds
-Revision:    01D9JYYKCN972PDF37DYTH55DB
-Last Action: install
-Result:      SUCCESS
-
-APPLICATION
------------
-Name:      simple
-Version:   1.0.0
-Reference:
-
-PARAMETERS
-----------
-simple_component_port: 8080
-
-STATUS
-------
-Status action
-current simple_component_port 8080
-Action io.cnab.status complete for my-simple-app
+Port 4242
+Action install complete for simple_app
+Application "simple_app" installed on context "default"
 ```
 
 * **upgrade** the application using a new port
 ```sh
-$ docker app upgrade my-simple-app --set simple_component_port=9090
+$ docker app upgrade simple_app --set port=9090
 Upgrade action
-Action upgrade complete for my-simple-app
-Application "my-simple-app" upgraded on context "dev"
+Upgraded port 8080
+Action upgrade complete for simple_app
+Application "simple_app" upgraded on context "dev"
 ```
 
-* **status** again, the last action is upgrade, and the listed parameter port should have changed too
+* **rm** the application
 ```sh
-$ docker app status my-simple-app
-INSTALLATION
-------------
-Name:        my-simple-app
-Created:     About a minute
-Modified:    15 seconds
-Revision:    01D9JZ0K8VRKJZ75HVFAMGA01D
-Last Action: upgrade
-Result:      SUCCESS
-
-APPLICATION
------------
-Name:      simple
-Version:   1.0.0
-Reference:
-
-PARAMETERS
-----------
-simple_component_port: 9090
-
-STATUS
-------
-Status action
-current simple_component_port 9090
-Action io.cnab.status complete for my-simple-app
-```
-
-* **uninstall** the application
-```sh
-$ docker app uninstall my-simple-app
+$ docker app rm simple_app
 Uninstall action
-Action uninstall complete for my-simple-app
-Application "my-simple-app" uninstalled on context "dev"
+Action uninstall complete for simple_app
+Application "simple_app" uninstalled on context "dev"
 ```
 </details>
