@@ -182,7 +182,17 @@ Docker CLI plugins are installed in the `~/.docker/cli-plugins` directory.
     $ docker run -v ~/:/workshop dapworkshop/workshop:0.9
     ```
 
-2. Run `tree .docker` and you'll see the plugin installed!
+2. Check `docker app` is installed properly
+
+    ```console
+    $ docker app --version
+    Version:               v0.9.0-zeta1
+    Git commit:            64e685eb
+    Built:                 Tue Oct 15 15:49:04 2019
+    OS/Arch:               linux/amd64
+    ```
+
+3. Run `tree .docker` and you'll see the plugin installed!
 
     ```console
     $ tree ~/.docker/
@@ -327,7 +337,7 @@ Options:
         ```
     3. Now run `docker --context=swarm ps -a`. You should now see the `hello-world` container.
         ```console
-        $ docker ps -a
+        $ docker --context=swarm ps -a
         CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                      PORTS               NAMES
         1541322b8f2b        hello-world         "/hello"            1 minute ago        Exited (0) 1 minute ago                         reverent_ptolemy
         ```
